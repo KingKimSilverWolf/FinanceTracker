@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { signOut } from '@/lib/firebase/auth';
@@ -85,21 +86,23 @@ export default function DashboardPage() {
 
           {/* Quick Actions */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Plus className="h-5 w-5 text-primary" />
+            <Link href="/dashboard/groups">
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Users className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">View Groups</CardTitle>
+                      <CardDescription>Manage your groups</CardDescription>
+                    </div>
                   </div>
-                  <div>
-                    <CardTitle className="text-lg">Create Group</CardTitle>
-                    <CardDescription>Start tracking expenses</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
+                </CardHeader>
+              </Card>
+            </Link>
 
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer opacity-60">
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -107,21 +110,21 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <CardTitle className="text-lg">Add Expense</CardTitle>
-                    <CardDescription>Quick expense entry</CardDescription>
+                    <CardDescription>Coming soon</CardDescription>
                   </div>
                 </div>
               </CardHeader>
             </Card>
 
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer opacity-60">
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Users className="h-5 w-5 text-primary" />
+                    <Plus className="h-5 w-5 text-primary" />
                   </div>
                   <div>
                     <CardTitle className="text-lg">Join Group</CardTitle>
-                    <CardDescription>Use an invite link</CardDescription>
+                    <CardDescription>Coming soon</CardDescription>
                   </div>
                 </div>
               </CardHeader>
@@ -144,10 +147,12 @@ export default function DashboardPage() {
                   Create your first group to start tracking shared expenses with friends, roommates,
                   or family.
                 </p>
-                <Button>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create Your First Group
-                </Button>
+                <Link href="/dashboard/groups">
+                  <Button>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create Your First Group
+                  </Button>
+                </Link>
               </div>
             </CardContent>
           </Card>
