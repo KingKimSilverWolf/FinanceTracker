@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { Users, Search } from 'lucide-react';
 import { ProtectedRoute } from '@/components/auth/protected-route';
+import { DashboardLayout } from '@/components/layouts/dashboard-layout';
 import { CreateGroupDialog } from '@/components/groups/create-group-dialog';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { getUserGroups, Group } from '@/lib/firebase/groups';
@@ -44,7 +45,8 @@ export default function GroupsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-background">
+      <DashboardLayout>
+        <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
@@ -121,7 +123,8 @@ export default function GroupsPage() {
             </div>
           )}
         </div>
-      </div>
+        </div>
+      </DashboardLayout>
     </ProtectedRoute>
   );
 }

@@ -30,10 +30,11 @@ import { RecurringExpensesCard } from '@/components/analytics/recurring-expenses
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { subMonths, startOfMonth, endOfMonth, format } from 'date-fns';
+import { subMonths, format } from 'date-fns';
 import { Download, RefreshCcw, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { exportAndDownloadExpenses } from '@/lib/export/csv-export';
+import { DashboardLayout } from '@/components/layouts/dashboard-layout';
 
 type DateRange = '1M' | '3M' | '6M' | '1Y';
 
@@ -79,30 +80,31 @@ export default function AnalyticsPage() {
         setIsLoading(true);
 
         // Calculate date range
-        const endDate = endOfMonth(new Date());
+        const today = new Date();
+        const endDate = new Date(today); // Use current date, not end of month
         let startDate: Date;
 
         switch (dateRange) {
           case '1M':
-            startDate = startOfMonth(new Date());
+            startDate = subMonths(today, 1);
             break;
           case '3M':
-            startDate = startOfMonth(subMonths(new Date(), 2));
+            startDate = subMonths(today, 3);
             break;
           case '6M':
-            startDate = startOfMonth(subMonths(new Date(), 5));
+            startDate = subMonths(today, 6);
             break;
           case '1Y':
-            startDate = startOfMonth(subMonths(new Date(), 11));
+            startDate = subMonths(today, 12);
             break;
           default:
-            startDate = startOfMonth(new Date());
+            startDate = subMonths(today, 1);
         }
 
         // Calculate previous period dates for comparison
+        const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
         const previousEnd = new Date(startDate);
         previousEnd.setDate(previousEnd.getDate() - 1);
-        const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
         const previousStart = new Date(previousEnd);
         previousStart.setDate(previousStart.getDate() - daysDiff);
 
@@ -202,24 +204,25 @@ export default function AnalyticsPage() {
       setIsExporting(true);
       
       // Calculate date range
-      const endDate = endOfMonth(new Date());
+      const today = new Date();
+      const endDate = new Date(today);
       let startDate: Date;
 
       switch (dateRange) {
         case '1M':
-          startDate = startOfMonth(new Date());
+          startDate = subMonths(today, 1);
           break;
         case '3M':
-          startDate = startOfMonth(subMonths(new Date(), 2));
+          startDate = subMonths(today, 3);
           break;
         case '6M':
-          startDate = startOfMonth(subMonths(new Date(), 5));
+          startDate = subMonths(today, 6);
           break;
         case '1Y':
-          startDate = startOfMonth(subMonths(new Date(), 11));
+          startDate = subMonths(today, 12);
           break;
         default:
-          startDate = startOfMonth(new Date());
+          startDate = subMonths(today, 1);
       }
 
       await exportAndDownloadExpenses({
@@ -246,7 +249,8 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-primary/10">
+    <DashboardLayout>
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-primary/10">
       <header className="border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -388,6 +392,7 @@ export default function AnalyticsPage() {
           </CardContent>
         </Card>
       </main>
-    </div>
+      </div>
+    </DashboardLayout>
   );
 }

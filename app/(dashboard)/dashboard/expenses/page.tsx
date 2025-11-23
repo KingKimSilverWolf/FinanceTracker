@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Receipt, Search, TrendingUp, Calendar } from 'lucide-react';
 import { ProtectedRoute } from '@/components/auth/protected-route';
+import { DashboardLayout } from '@/components/layouts/dashboard-layout';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { getUserExpenses, Expense } from '@/lib/firebase/expenses';
 import { AddExpenseDialog } from '@/components/expenses/add-expense-dialog';
@@ -71,7 +72,8 @@ export default function ExpensesPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-background">
+      <DashboardLayout>
+        <div className="min-h-screen bg-background">
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
@@ -231,7 +233,8 @@ export default function ExpensesPage() {
             </div>
           )}
         </div>
-      </div>
+        </div>
+      </DashboardLayout>
     </ProtectedRoute>
   );
 }

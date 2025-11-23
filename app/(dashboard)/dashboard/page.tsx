@@ -5,6 +5,7 @@ import { ProtectedRoute } from '@/components/auth/protected-route';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { signOut } from '@/lib/firebase/auth';
 import { AddExpenseDialog } from '@/components/expenses/add-expense-dialog';
+import { DashboardLayout } from '@/components/layouts/dashboard-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -38,9 +39,10 @@ export default function DashboardPage() {
 
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-primary/10">
-        {/* Header */}
-        <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <DashboardLayout>
+        <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-primary/10">
+          {/* Header */}
+          <header className="border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
           <div className="container mx-auto px-4 py-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
@@ -177,7 +179,8 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </main>
-      </div>
+        </div>
+      </DashboardLayout>
     </ProtectedRoute>
   );
 }
