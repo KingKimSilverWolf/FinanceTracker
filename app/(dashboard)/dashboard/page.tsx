@@ -134,19 +134,21 @@ export default function DashboardPage() {
               </CardHeader>
             </Card>
 
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer opacity-60">
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Plus className="h-5 w-5 text-primary" />
+            <Link href="/dashboard/analytics">
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <TrendingUp className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">Analytics</CardTitle>
+                      <CardDescription>Spending insights</CardDescription>
+                    </div>
                   </div>
-                  <div>
-                    <CardTitle className="text-lg">Join Group</CardTitle>
-                    <CardDescription>Coming soon</CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-            </Card>
+                </CardHeader>
+              </Card>
+            </Link>
           </div>
 
           {/* Empty State */}
