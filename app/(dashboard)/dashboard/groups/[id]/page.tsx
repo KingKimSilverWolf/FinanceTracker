@@ -12,6 +12,7 @@ import { formatCurrency } from '@/lib/utils';
 import { EditGroupDialog } from '@/components/groups/edit-group-dialog';
 import { InviteMemberDialog } from '@/components/groups/invite-member-dialog';
 import { AddExpenseDialog } from '@/components/expenses/add-expense-dialog';
+import { GroupBalanceDashboard } from '@/components/settlements/group-balance-dashboard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -340,6 +341,11 @@ export default function GroupDetailPage() {
               )}
             </CardContent>
           </Card>
+
+          {/* Balances & Settlements Section */}
+          <div className="mt-6">
+            <GroupBalanceDashboard groupId={groupId} />
+          </div>
         </div>
       </div>
     </ProtectedRoute>
