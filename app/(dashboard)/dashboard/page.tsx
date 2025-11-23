@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { signOut } from '@/lib/firebase/auth';
+import { AddExpenseDialog } from '@/components/expenses/add-expense-dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -85,7 +86,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <Link href="/dashboard/groups">
               <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
                 <CardHeader>
@@ -102,16 +103,33 @@ export default function DashboardPage() {
               </Card>
             </Link>
 
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer opacity-60">
+            <Link href="/dashboard/expenses">
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Receipt className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">View Expenses</CardTitle>
+                      <CardDescription>All your expenses</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+              </Card>
+            </Link>
+
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
                     <Receipt className="h-5 w-5 text-primary" />
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <CardTitle className="text-lg">Add Expense</CardTitle>
-                    <CardDescription>Coming soon</CardDescription>
+                    <CardDescription>Track shared or personal</CardDescription>
                   </div>
+                  <AddExpenseDialog />
                 </div>
               </CardHeader>
             </Card>

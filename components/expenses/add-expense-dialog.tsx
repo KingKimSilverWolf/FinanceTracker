@@ -74,9 +74,10 @@ interface AddExpenseDialogProps {
   defaultType?: 'shared' | 'personal';
   defaultGroupId?: string;
   onSuccess?: () => void;
+  children?: React.ReactNode;
 }
 
-export function AddExpenseDialog({ defaultType = 'personal', defaultGroupId, onSuccess }: AddExpenseDialogProps) {
+export function AddExpenseDialog({ defaultType = 'personal', defaultGroupId, onSuccess, children }: AddExpenseDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [expenseType, setExpenseType] = useState<'shared' | 'personal'>(defaultType);
@@ -246,10 +247,12 @@ export function AddExpenseDialog({ defaultType = 'personal', defaultGroupId, onS
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button>
-          <Plus className="mr-2 h-4 w-4" />
-          Add Expense
-        </Button>
+        {children || (
+          <Button>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Expense
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>

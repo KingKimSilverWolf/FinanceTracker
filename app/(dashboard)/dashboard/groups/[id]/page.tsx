@@ -2,12 +2,16 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Users, Trash2, Crown } from 'lucide-react';
+import { ArrowLeft, Users, Trash2, Crown, Receipt, Plus } from 'lucide-react';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { getGroup, isGroupAdmin, deleteGroup, removeGroupMember, Group } from '@/lib/firebase/groups';
+import { getGroupExpenses, Expense } from '@/lib/firebase/expenses';
+import { getCategory } from '@/lib/constants/expenses';
+import { formatCurrency } from '@/lib/utils';
 import { EditGroupDialog } from '@/components/groups/edit-group-dialog';
 import { InviteMemberDialog } from '@/components/groups/invite-member-dialog';
+import { AddExpenseDialog } from '@/components/expenses/add-expense-dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,7 +25,9 @@ export default function GroupDetailPage() {
   const router = useRouter();
   const { user } = useAuth();
   const [group, setGroup] = useState<Group | null>(null);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingExpenses, setLoadingExpenses] = useState(true);
   const groupId = params.id as string;
 
   const loadGroup = useCallback(async () => {
@@ -37,11 +43,25 @@ export default function GroupDetailPage() {
     }
   }, [groupId]);
 
+  const loadExpenses = useCallback(async () => {
+    try {
+      setLoadingExpenses(true);
+      const expenseData = await getGroupExpenses(groupId);
+      setExpenses(expenseData);
+    } catch (error) {
+      console.error('Error loading expenses:', error);
+      toast.error('Failed to load expenses');
+    } finally {
+      setLoadingExpenses(false);
+    }
+  }, [groupId]);
+
   useEffect(() => {
     if (user && groupId) {
       loadGroup();
+      loadExpenses();
     }
-  }, [user, groupId, loadGroup]);
+  }, [user, groupId, loadGroup, loadExpenses]);
 
   async function handleDeleteGroup() {
     if (!group || !user) return;
@@ -216,37 +236,108 @@ export default function GroupDetailPage() {
               <CardContent className="space-y-4">
                 <div>
                   <p className="text-sm text-muted-foreground">Total Expenses</p>
-                  <p className="text-2xl font-bold">$0.00</p>
+                  <p className="text-2xl font-bold">
+                    {formatCurrency(expenses.reduce((sum, exp) => sum + exp.amount, 0))}
+                  </p>
                 </div>
                 <Separator />
                 <div>
-                  <p className="text-sm text-muted-foreground">Your Balance</p>
-                  <p className="text-2xl font-bold">$0.00</p>
+                  <p className="text-sm text-muted-foreground">Expense Count</p>
+                  <p className="text-2xl font-bold">{expenses.length}</p>
                 </div>
                 <Separator />
                 <div>
                   <p className="text-sm text-muted-foreground">Pending Settlements</p>
-                  <p className="text-2xl font-bold">0</p>
+                  <p className="text-2xl font-bold">Coming Soon</p>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Expenses Section (Coming Soon) */}
+          {/* Expenses Section */}
           <Card className="mt-6">
             <CardHeader>
-              <CardTitle>Recent Expenses</CardTitle>
-              <CardDescription>Track and split expenses with your group</CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Recent Expenses</CardTitle>
+                  <CardDescription>Track and split expenses with your group</CardDescription>
+                </div>
+                <AddExpenseDialog
+                  defaultType="shared"
+                  defaultGroupId={groupId}
+                  onSuccess={() => {
+                    loadExpenses();
+                    loadGroup();
+                  }}
+                >
+                  <Button size="sm">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Expense
+                  </Button>
+                </AddExpenseDialog>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <Users className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No expenses yet</h3>
-                <p className="text-muted-foreground mb-6 max-w-sm">
-                  Start adding expenses to track who paid and split the costs among members.
-                </p>
-                <Button disabled>Add Expense (Coming Soon)</Button>
-              </div>
+              {loadingExpenses ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+                </div>
+              ) : expenses.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <Receipt className="h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No expenses yet</h3>
+                  <p className="text-muted-foreground mb-6 max-w-sm">
+                    Start adding expenses to track who paid and split the costs among members.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {expenses.slice(0, 5).map((expense) => {
+                    const category = getCategory(expense.category);
+                    const paidByMember = group.members.find(m => m.userId === expense.paidBy);
+                    
+                    return (
+                      <div
+                        key={expense.id}
+                        className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-accent/50 cursor-pointer transition-colors"
+                        onClick={() => router.push(`/dashboard/expenses/${expense.id}`)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="flex items-center justify-center w-10 h-10 rounded-full text-xl"
+                            style={{ backgroundColor: category?.color + '20' || '#6366f120' }}
+                          >
+                            {category?.icon || '💸'}
+                          </div>
+                          <div>
+                            <p className="font-medium">{expense.description}</p>
+                            <p className="text-sm text-muted-foreground">
+                              Paid by {paidByMember?.displayName || 'Unknown'} • {new Date(expense.date).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold">{formatCurrency(expense.amount)}</p>
+                          {expense.participants && (
+                            <p className="text-sm text-muted-foreground">
+                              Split {expense.participants.length} ways
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {expenses.length > 5 && (
+                    <Button
+                      variant="ghost"
+                      className="w-full mt-4"
+                      onClick={() => router.push(`/dashboard/expenses?group=${groupId}`)}
+                    >
+                      View All {expenses.length} Expenses
+                    </Button>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
