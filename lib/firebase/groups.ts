@@ -52,6 +52,7 @@ export async function createGroup(
   creatorDisplayName: string,
   creatorPhotoURL: string | null
 ): Promise<string> {
+  const now = new Date();
   const groupRef = await addDoc(collection(db, 'groups'), {
     name,
     description,
@@ -63,7 +64,7 @@ export async function createGroup(
         displayName: creatorDisplayName,
         photoURL: creatorPhotoURL,
         role: 'admin',
-        joinedAt: serverTimestamp(),
+        joinedAt: now,
       },
     ],
     createdAt: serverTimestamp(),
@@ -155,7 +156,7 @@ export async function addGroupMember(
       displayName,
       photoURL,
       role,
-      joinedAt: serverTimestamp(),
+      joinedAt: new Date(),
     }),
     updatedAt: serverTimestamp(),
   });

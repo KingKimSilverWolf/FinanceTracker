@@ -1,7 +1,7 @@
-# Phase 2: Group Management (Completed)
+# Phase 2: Group Management & User System (Completed ✅)
 
 ## Overview
-Built the core group management system allowing users to create groups, view members, and manage group settings.
+Built the complete group management system allowing users to create groups, invite members, manage settings, and remove members. Includes full authentication system with email/password and Google OAuth.
 
 ## Features Implemented
 
@@ -54,6 +54,30 @@ Built the core group management system allowing users to create groups, view mem
 - "Add Expense" card (disabled, "Coming soon")
 - "Join Group" card (disabled, "Coming soon")
 - "Create Your First Group" button in empty state
+
+### 6. **Edit Group Dialog** (`components/groups/edit-group-dialog.tsx`)
+- Modal dialog for editing group settings
+- Form validation with react-hook-form + zod
+- Fields: Group name (required), description (optional)
+- Updates Firestore and reloads group data
+- Toast notifications for success/error states
+- Admin-only feature
+
+### 7. **Invite Member Dialog** (`components/groups/invite-member-dialog.tsx`)
+- Modal dialog with shareable invite link
+- Copy to clipboard functionality
+- Placeholder for future email invitation system
+- Shows invite link format: `/invite/{groupId}`
+- Note displayed about full system coming later
+- Admin-only feature
+
+### 8. **Member Removal** (`app/(dashboard)/dashboard/groups/[id]/page.tsx`)
+- Remove member button for each non-admin member
+- Confirmation dialog before removal
+- Updates Firestore and reloads group data
+- Only visible to admins
+- Cannot remove yourself or other admins
+- Toast notifications for success/error
 
 ## Database Structure
 
@@ -112,38 +136,78 @@ Built the core group management system allowing users to create groups, view mem
 
 ⚠️ **Admin Role** - Only creator is admin. No way to promote other members to admin yet.
 
-## Next Steps (Phase 2 Continued)
+## Next Steps (Future Enhancements)
 
-- [ ] Member invitation system (email invites, invite links)
-- [ ] Join group flow (accept invitations)
-- [ ] Remove member functionality (with confirmation)
-- [ ] Edit group settings (name, description)
+### Phase 3: Core Expense Tracking
+- [ ] Add expense form (shared & personal types)
+- [ ] Expense list page with filters
+- [ ] Expense detail/edit pages
+- [ ] Category management
+- [ ] Split calculation logic
+
+### Group Management Enhancements (Later)
+- [ ] Full invitation system (email invites via Firebase)
+- [ ] Join group flow with email verification
 - [ ] Make member admin (role promotion)
 - [ ] Real-time updates with Firestore listeners
 - [ ] Optimized queries with user-groups subcollection
+- [ ] Group activity log/history
+- [ ] Member activity tracking
 
 ## Files Created/Modified
 
 **New Files:**
-- `lib/firebase/groups.ts` - Firestore group operations
+- `lib/firebase/groups.ts` - Firestore group operations (CRUD + member management)
+- `lib/firebase/auth.ts` - Firebase authentication functions
+- `lib/contexts/auth-context.tsx` - React context for authentication state
 - `components/groups/create-group-dialog.tsx` - Group creation modal
+- `components/groups/edit-group-dialog.tsx` - Group settings editor
+- `components/groups/invite-member-dialog.tsx` - Member invitation UI
+- `components/auth/protected-route.tsx` - Route protection wrapper
+- `app/(auth)/login/page.tsx` - Login page with email + Google
+- `app/(auth)/signup/page.tsx` - Signup page with validation
 - `app/(dashboard)/dashboard/groups/page.tsx` - Groups list page
-- `app/(dashboard)/dashboard/groups/[id]/page.tsx` - Group detail page
+- `app/(dashboard)/dashboard/groups/[id]/page.tsx` - Group detail & management
 - `docs/PHASE_2_GROUPS.md` - This documentation
+- `docs/UX_STRATEGY.md` - Personal + Group finance UX strategy
+- `docs/AUTHENTICATION.md` - Auth system documentation
 
 **Modified Files:**
-- `app/(dashboard)/dashboard/page.tsx` - Added link to groups page
+- `app/(dashboard)/dashboard/page.tsx` - Added groups navigation
+- `app/layout.tsx` - Added AuthProvider and Sonner
+- `app/page.tsx` - Created landing page with features
+- `app/globals.css` - Fixed Tailwind v4 color system
+- `.env.local` - Updated Firebase configuration
 
 ## Testing Checklist
 
+### Authentication
+- [x] Email/password signup with validation
+- [x] Email/password login
+- [x] Google OAuth sign-in
+- [x] Protected routes redirect to login
+- [x] Session persistence across refreshes
+- [x] Sign-out functionality
+
+### Group Management
 - [ ] Create a new group
 - [ ] Verify group appears in groups list
 - [ ] Click group to view details
 - [ ] Verify creator is shown as admin with crown icon
 - [ ] Test search functionality on groups list
+- [ ] Edit group settings (name, description)
+- [ ] Copy invite link to clipboard
+- [ ] Remove a member from group
+- [ ] Verify non-admins cannot see admin buttons
 - [ ] Test delete group (admin only)
 - [ ] Verify Firebase Firestore has `groups` collection
 - [ ] Check group document structure in Firebase console
+
+### UI/UX
 - [ ] Test on mobile/tablet screen sizes
 - [ ] Verify loading states work correctly
 - [ ] Confirm toast notifications appear
+- [ ] Check all dialogs open/close properly
+- [ ] Test form validations
+- [ ] Verify colors (teal brand color) display correctly
+- [ ] Check dark mode support (via system preference)

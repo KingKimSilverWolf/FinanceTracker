@@ -2,10 +2,12 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { ArrowLeft, Users, Settings, Trash2, UserPlus, Crown } from 'lucide-react';
+import { ArrowLeft, Users, Trash2, Crown } from 'lucide-react';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import { useAuth } from '@/lib/contexts/auth-context';
-import { getGroup, isGroupAdmin, deleteGroup, Group } from '@/lib/firebase/groups';
+import { getGroup, isGroupAdmin, deleteGroup, removeGroupMember, Group } from '@/lib/firebase/groups';
+import { EditGroupDialog } from '@/components/groups/edit-group-dialog';
+import { InviteMemberDialog } from '@/components/groups/invite-member-dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -59,6 +61,28 @@ export default function GroupDetailPage() {
         toast.error(error.message);
       } else {
         toast.error('Failed to delete group');
+      }
+    }
+  }
+
+  async function handleRemoveMember(memberId: string, memberName: string) {
+    if (!group || !user) return;
+
+    const confirmed = confirm(
+      `Are you sure you want to remove ${memberName} from this group?`
+    );
+    if (!confirmed) return;
+
+    try {
+      await removeGroupMember(groupId, memberId);
+      toast.success(`${memberName} removed from group`);
+      loadGroup(); // Reload group data
+    } catch (error) {
+      console.error('Error removing member:', error);
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error('Failed to remove member');
       }
     }
   }
@@ -121,11 +145,10 @@ export default function GroupDetailPage() {
               <div className="flex gap-2">
                 {isAdmin && (
                   <>
-                    <Button variant="outline" size="icon">
-                      <Settings className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" size="icon" onClick={handleDeleteGroup}>
-                      <Trash2 className="h-4 w-4" />
+                    <EditGroupDialog group={group} onUpdate={loadGroup} />
+                    <Button variant="destructive" size="sm" onClick={handleDeleteGroup}>
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete Group
                     </Button>
                   </>
                 )}
@@ -144,10 +167,7 @@ export default function GroupDetailPage() {
                     <Badge variant="secondary">{group.members.length}</Badge>
                   </div>
                   {isAdmin && (
-                    <Button size="sm">
-                      <UserPlus className="mr-2 h-4 w-4" />
-                      Invite Member
-                    </Button>
+                    <InviteMemberDialog groupId={group.id} groupName={group.name} />
                   )}
                 </div>
               </CardHeader>
@@ -173,7 +193,11 @@ export default function GroupDetailPage() {
                           </div>
                         </div>
                         {isAdmin && member.userId !== user?.uid && (
-                          <Button variant="ghost" size="sm">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoveMember(member.userId, member.displayName)}
+                          >
                             Remove
                           </Button>
                         )}
