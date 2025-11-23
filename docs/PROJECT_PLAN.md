@@ -4,19 +4,20 @@
 
 **🎉 LOCKED IN AND READY TO BUILD!**
 
-### 🎨 **DuoFi** - *Finance for two, simplified*
+### 🎨 **DuoFi** - *Finance for two or more, simplified*
 **Pronunciation:** *DOO-oh-fie*
 
 **Brand Identity:**
 - **Name:** DuoFi
-- **Tagline:** "Finance for two, simplified"
-- **Alternative taglines:** "Your money, together" | "Two people, one app"
+- **Tagline:** "Finance for two or more, simplified"
+- **Alternative taglines:** "Your money, together" | "Shared expenses made simple" | "Track it. Split it. Settle it."
 - **Brand Colors:** Teal Wave (#14B8A6)
-- **Personality:** Modern, friendly, collaborative, tech-savvy
+- **Personality:** Modern, friendly, collaborative, flexible, tech-savvy
 
 **Why DuoFi:**
 ✅ Memorable and unique
-✅ Perfect for couples' finance
+✅ Works for couples, roommates, friends, family - any group sharing expenses
+✅ Scalable from 2 to many people
 ✅ Modern tech naming
 ✅ Great branding potential
 ✅ Clean trademark path
@@ -30,43 +31,117 @@
 ## 📋 Project Overview
 
 ### Vision
-A modern, intuitive web application for couples to track shared and individual finances with beautiful visualizations, seamless mobile experience, and real-time synchronization.
+A modern, intuitive web application for groups of 2 or more people to track shared and individual finances with beautiful visualizations, seamless mobile experience, and automated settlement calculations.
 
 ### Core Problem Statement
-Current spreadsheet-based tracking is:
-- Confusing and hard to navigate
-- Lacks visual clarity
-- Difficult to use on mobile
-- No automated calculations
-- Poor user experience for split expense tracking
+**Current spreadsheet-based tracking (like the provided example) has major pain points:**
+- Confusing and hard to navigate on mobile
+- Lacks visual clarity and modern UX
+- Manual formula management is error-prone
+- Difficult to see "who owes whom" at a glance
+- No automated calculations or alerts
+- Poor mobile experience for quick expense entry
+- Hard to track historical trends and patterns
+- Settlement calculations require manual tracking
+
+### Real-World Use Case (Origin Story)
+This app was born from a real Google Sheets used by Kim & Ray to track their shared living expenses:
+- **Shared expenses:** Rent, utilities (gas, water, internet), parking, furniture
+- **Split tracking:** Full price + individual contributions for each person
+- **Grocery system:** Monthly tracking of who bought groceries, settlement at month end
+- **Settlement calculation:** Automated "To Pay Kim" or "To Pay Ray" amounts
+- **Utility details:** Month-by-month breakdown with yearly totals
 
 ### Target Users
-- Couples living together
-- Partners sharing expenses
-- Individuals wanting to track both personal and shared finances
+- **Couples living together** - Primary use case (roommates, partners, married couples)
+- **Roommates** - 2-4+ people sharing rent and bills
+- **Friends** - Group trips, shared subscriptions, events
+- **Family members** - Adult children with parents, siblings sharing costs
+- **Small groups** - Any 2+ people with recurring shared expenses
+- **Individuals** - Can also use for personal finance tracking only
+
+---
+
+## 📊 Current Spreadsheet Analysis (What We're Replacing)
+
+### Spreadsheet Structure (Kim & Ray's Real Example):
+```
+Section 1: Monthly Shared Expenses
+├── Rent: $2,879.74 (Kim: $1,498.20 | Ray: $1,381.55)
+├── Gas: $25.50 (Kim: $0.00 | Ray: $25.50)
+├── Water: $91.15 (Kim: $0.00 | Ray: $91.15)
+├── Internet: $0.00 (Kim: $0.00 | Ray: $0.00)
+├── Parking: $125.00 (Kim: $0.00 | Ray: $125.00)
+├── Furniture: $150.00 (Kim: $150.00 | Ray: $0.00)
+├── Total: $3,271.39
+└── Settlement: "To Pay Kim: $1,306.55"
+
+Section 2: Groceries Monthly Tracking
+├── Responsible person tracked (Kim/Ray)
+├── Monthly contributions
+├── Settlement calculations
+└── Running totals per person
+
+Section 3: Utility Details (Gas & Water)
+├── Month-by-month breakdown
+├── Individual contributions per month
+├── Yearly totals
+└── Notes (e.g., "paid twice because of error")
+```
+
+### Key Insights from Spreadsheet:
+1. **Full price is tracked** - Then split between people
+2. **Not always 50/50** - Custom amounts per person per expense
+3. **Settlement is calculated** - Shows exactly who owes whom
+4. **Multiple views** - Summary + detailed breakdowns
+5. **Yearly tracking** - Monthly data aggregates to yearly totals
+6. **Notes/Comments** - Important for context (errors, special cases)
+7. **Category-based** - Expenses grouped by type
+
+### Pain Points to Solve:
+❌ Hard to navigate on mobile
+❌ Manual formula management
+❌ No visual charts or trends
+❌ Difficult to quickly add expenses on-the-go
+❌ No automated alerts or reminders
+❌ Settlement calculation requires scrolling
+❌ Historical comparison is tedious
+❌ No receipt storage or photos
+❌ Formatting breaks easily
+❌ Sharing/collaboration can cause conflicts
 
 ---
 
 ## 🎯 Core Features & Requirements
 
-### 1. **Shared Expense Tracking**
+### 1. **Shared Expense Tracking** (Core Feature - Based on Real Spreadsheet)
 - **Recurring Shared Expenses**
-  - Rent (monthly split)
+  - Rent (monthly split between all participants)
   - Utilities (Water, Gas, Electricity, Internet, Parking)
-  - Monthly grocery purchases
+  - Monthly grocery purchases (track who bought, settle at month end)
+  - Subscriptions (streaming services, memberships)
   - Other recurring bills
   
 - **One-time Shared Expenses**
   - Furniture purchases
   - Special occasions
   - Home improvements
-  - Date nights
+  - Group outings/trips
+  - Shared equipment/appliances
 
 - **Flexible Split Options**
-  - 50/50 split (default)
-  - Custom percentage split
-  - Custom amount split
-  - One person pays, tracks who owes whom
+  - Equal split (divide by number of people)
+  - 50/50 split for 2 people (default for couples)
+  - Custom percentage split (e.g., 60/40 based on income)
+  - Custom amount split (e.g., $100 + $200 + $300)
+  - Unequal splits (some people pay more/less)
+  - "One person paid" - track who owes whom
+  
+- **Multi-Person Support**
+  - Add 2+ people to any expense group
+  - Each person's contribution tracked separately
+  - Automatic calculation of who owes what to whom
+  - Support for different people paying at different times
 
 ### 2. **Personal Finance Tracking**
 - Individual expenses by category
@@ -82,17 +157,32 @@ Current spreadsheet-based tracking is:
 - Personal savings goals
 - Personal spending trends
 
-### 3. **Settlement & Balance System**
+### 3. **Settlement & Balance System** (Replaces "To Pay Kim" from Spreadsheet)
 - **Monthly Settlement Dashboard**
-  - Who paid what during the month
-  - Automatic calculation of balance
-  - Clear display: "Kim owes Ray $XXX" or "Ray owes Kim $XXX"
-  - Settlement history
+  - Crystal clear view: "Kim paid $1,648.20 | Ray paid $1,623.20"
+  - Automatic calculation of net balance
+  - Prominent display: "Ray owes Kim $25.00" or "Kim owes Ray $1,306.55"
+  - Individual contribution breakdown by category
+  - Month-to-date running totals
+  - Settlement history over time
 
+- **Multi-Person Settlement (3+ people)**
+  - Calculate net balances for each person
+  - Show all pairwise debts (e.g., "Kim owes Ray $50, Alex owes Kim $30")
+  - Optimize settlements (minimize number of transactions)
+  - Group settlement view
+  
 - **Payment Tracking**
-  - Log when settlements are made
-  - Payment history with dates
+  - Log when settlements are made between people
+  - Payment methods (Venmo, Zelle, Cash, Bank Transfer)
+  - Payment history with dates and amounts
   - Running balance over time
+  - Mark debts as "settled" or "pending"
+  
+- **Smart Notifications**
+  - End-of-month settlement reminders
+  - Large balance alerts (e.g., "Balance over $500")
+  - Payment confirmation notifications
 
 ### 4. **Analytics & Insights**
 - **Shared Analytics**
@@ -109,11 +199,12 @@ Current spreadsheet-based tracking is:
   - Monthly personal spending trends
   - Savings rate
 
-- **Combined View**
-  - Total household spending
-  - Combined income
-  - Household savings rate
+- **Combined View (Group Analytics)**
+  - Total group spending (all members)
+  - Combined group income (if tracked)
+  - Group savings rate
   - Financial health score
+  - Per-member contribution breakdown
 
 ### 5. **Dashboard Views**
 - **Home Dashboard**
@@ -663,12 +754,16 @@ All recommended palettes meet:
    - Real-time database
    - Collections structure:
      - `users` - User profiles
-     - `couples` - Couple/partner relationships
-     - `expenses` - Individual expenses
-     - `sharedExpenses` - Shared expenses
-     - `categories` - Custom categories
+     - `groups` - Expense groups (2+ people)
+     - `groupMembers` - Many-to-many user-group relationships
+     - `expenses` - All expenses (shared & personal)
+     - `expenseSplits` - Denormalized splits (optional)
      - `settlements` - Payment settlements
-     - `budgets` - Budget limits
+     - `categories` - System & custom categories
+     - `invites` - Group invitations
+     - `notifications` - User notifications
+   
+   **See:** `docs/DATABASE_SCHEMA.md` for complete schema details
 
 3. **Firebase Storage**
    - Receipt images
@@ -688,76 +783,64 @@ All recommended palettes meet:
 
 ### Data Structure (Firestore)
 
+**⚠️ UPDATED FOR MULTI-PERSON SUPPORT (2+ people)**
+
+See complete schema documentation in `docs/DATABASE_SCHEMA.md`
+
+**Key Collections:**
+- **`users`** - User profiles & preferences
+- **`groups`** - Expense groups (replaces old "couples" - supports 2+ people)
+- **`groupMembers`** - Junction table (many-to-many users ↔ groups)
+- **`expenses`** - All expenses with flexible splits
+- **`settlements`** - Balance tracking between users
+- **`categories`** - System & custom categories
+
+**Key Changes from Old Schema:**
+1. ✅ `groups` replaces `couples` - no more `partner1Id`/`partner2Id` limitation
+2. ✅ `groupMembers` junction table - users can be in multiple groups
+3. ✅ Flexible `splitData` object - works for any number of people
+4. ✅ Amount stored in cents - avoid floating-point issues
+5. ✅ Proper indexes for performance
+6. ✅ Scalable to any group size (2, 3, 4, 10+ people)
+
+**Quick Reference:**
 ```typescript
-// Users Collection
-interface User {
-  uid: string;
-  email: string;
-  displayName: string;
-  photoURL?: string;
-  coupleId?: string; // Reference to couple document
-  createdAt: Timestamp;
-  preferences: {
-    currency: string;
-    theme: 'light' | 'dark';
-    notifications: boolean;
-  };
-}
-
-// Couples Collection
-interface Couple {
+// Groups - supports 2+ people
+interface Group {
   id: string;
-  partner1Id: string;
-  partner2Id: string;
-  createdAt: Timestamp;
-  sharedCategories: Category[];
-  recurringExpenses: RecurringExpense[];
+  name: string;                    // "Kim & Ray's Home", "3 Roommates"
+  type: 'couple' | 'roommates' | 'friends' | 'family' | 'other';
+  settings: { currency: string; splitDefault: string; };
+  stats: { memberCount: number; totalExpenses: number; };
 }
 
-// Expenses Collection
+// GroupMembers - many-to-many relationship
+interface GroupMember {
+  id: string;
+  groupId: string;
+  userId: string;
+  role: 'owner' | 'admin' | 'member';
+  status: 'active' | 'invited' | 'left';
+}
+
+// Expenses - flexible splitting
 interface Expense {
   id: string;
-  userId: string;
-  coupleId?: string; // Only if shared
-  type: 'personal' | 'shared';
-  amount: number;
-  category: string;
-  description: string;
-  date: Timestamp;
-  paidBy: string; // userId who paid
-  splitType?: '50-50' | 'custom';
-  splitDetails?: {
-    [userId: string]: number; // percentage or amount
-  };
-  receiptURL?: string;
-  createdAt: Timestamp;
-  updatedAt: Timestamp;
-}
-
-// Settlements Collection
-interface Settlement {
-  id: string;
-  coupleId: string;
-  month: string; // 'YYYY-MM'
-  fromUserId: string;
-  toUserId: string;
-  amount: number;
-  settled: boolean;
-  settledDate?: Timestamp;
-  createdAt: Timestamp;
-}
-
-// Categories Collection
-interface Category {
-  id: string;
-  name: string;
-  icon: string;
-  color: string;
-  type: 'shared' | 'personal' | 'both';
-  userId?: string; // If personal category
-  coupleId?: string; // If couple category
+  type: 'shared' | 'personal';
+  groupId?: string;
+  amount: number;                  // In cents
+  splitType: 'equal' | 'percentage' | 'custom' | 'amount';
+  splitData?: { [userId: string]: number };
+  paidBy: string;
 }
 ```
+
+**📘 Full Documentation:** See `docs/DATABASE_SCHEMA.md` for:
+- Complete type definitions
+- Security rules
+- Query examples
+- Optimization strategies
+- Migration guide from old schema
 
 ### Development Tools
 - **Prettier** - Code formatting
@@ -898,12 +981,14 @@ FinanceTracker/
    - [ ] Implement session management
    - [ ] Add "forgot password" flow
 
-2. **User Profile**
+2. **User Profile & Group Management**
    - [ ] Create user profile page
    - [ ] Implement profile editing
    - [ ] Add profile picture upload
-   - [ ] Create partner invitation system
-   - [ ] Implement partner linking flow
+   - [ ] Create group creation flow
+   - [ ] Implement group invitation system (supports 2+ members)
+   - [ ] Add member management (add/remove/view members)
+   - [ ] Create group settings page
 
 3. **Onboarding**
    - [ ] Create welcome screen
@@ -914,7 +999,8 @@ FinanceTracker/
 **Deliverables:**
 - Complete authentication system
 - User profile management
-- Partner linking functionality
+- Group creation & management (supports 2+ people)
+- Member invitation system
 
 ---
 

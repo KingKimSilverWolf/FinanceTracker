@@ -3,7 +3,7 @@
 ## 🎉 Phase 1 - Foundation Setup In Progress!
 
 ### Current Status:
-✅ Next.js 14 initialized with TypeScript
+✅ Next.js 16 initialized with TypeScript
 ✅ Tailwind CSS configured
 ✅ ESLint set up
 ✅ Project renamed to `duofi`
