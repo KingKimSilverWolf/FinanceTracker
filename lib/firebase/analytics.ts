@@ -715,14 +715,382 @@ export async function getBudgetStatus(
         percentageUsed,
         status,
         projectedTotal,
-        daysInMonth,
-        daysRemaining,
+      daysInMonth,
+      daysRemaining,
+    });
+  }
+  
+  return statuses;
+} catch (error) {
+  console.error('Error in getBudgetStatus:', error);
+  throw error;
+}
+}
+
+// Interfaces for Insights & Predictions
+export interface SpendingInsight {
+  id: string;
+  type: 'warning' | 'tip' | 'success' | 'info';
+  title: string;
+  message: string;
+  priority: 'high' | 'medium' | 'low';
+  category?: string;
+  amount?: number;
+  action?: string;
+}
+
+export interface SpendingPrediction {
+  category: string;
+  predictedAmount: number;
+  confidence: number; // 0-1
+  trend: 'increasing' | 'decreasing' | 'stable';
+  percentageChange: number;
+}
+
+export interface RecurringExpense {
+  description: string;
+  category: string;
+  averageAmount: number;
+  frequency: 'weekly' | 'monthly' | 'quarterly';
+  nextExpectedDate: Date;
+  occurrences: number;
+}
+
+/**
+ * Generate AI-powered spending insights based on analytics data
+ */
+export async function getSpendingInsights(
+  userId: string,
+  groupIds: string[],
+  dateRange: { startDate: Date; endDate: Date }
+): Promise<SpendingInsight[]> {
+  try {
+    const insights: SpendingInsight[] = [];
+    let insightId = 1;
+
+    // Get data for analysis
+    const [summary, categories, budgets, dailySpending] = await Promise.all([
+      getSpendingSummary(userId, groupIds, dateRange.startDate, dateRange.endDate),
+      getCategoryBreakdown(userId, groupIds, dateRange.startDate, dateRange.endDate),
+      getBudgetStatus(userId, groupIds),
+      getDailySpending(userId, groupIds, dateRange.startDate, dateRange.endDate),
+    ]);
+
+    // 1. Budget Alert Insights
+    const exceededBudgets = budgets.filter(b => b.status === 'exceeded');
+    const warningBudgets = budgets.filter(b => b.status === 'warning');
+
+    if (exceededBudgets.length > 0) {
+      exceededBudgets.forEach(budget => {
+        insights.push({
+          id: `insight-${insightId++}`,
+          type: 'warning',
+          title: `${budget.category} Budget Exceeded`,
+          message: `You've spent $${budget.spentAmount.toFixed(2)} of your $${budget.budgetAmount.toFixed(2)} budget. Consider reducing spending in this category.`,
+          priority: 'high',
+          category: budget.category,
+          amount: budget.spentAmount - budget.budgetAmount,
+          action: 'Review expenses',
+        });
       });
     }
+
+    if (warningBudgets.length > 0) {
+      warningBudgets.forEach(budget => {
+        insights.push({
+          id: `insight-${insightId++}`,
+          type: 'warning',
+          title: `${budget.category} Budget Warning`,
+          message: `You're at ${budget.percentageUsed.toFixed(0)}% of your budget with ${budget.daysRemaining} days left. Projected to spend $${budget.projectedTotal.toFixed(2)}.`,
+          priority: 'medium',
+          category: budget.category,
+          amount: budget.projectedTotal - budget.budgetAmount,
+          action: 'Monitor spending',
+        });
+      });
+    }
+
+    // 2. High Spending Category Insights
+    const sortedCategories = [...categories].sort((a, b) => b.total - a.total);
+    const topCategory = sortedCategories[0];
     
-    return statuses;
+    if (topCategory && topCategory.percentage > 30) {
+      insights.push({
+        id: `insight-${insightId++}`,
+        type: 'info',
+        title: `${topCategory.category} is Your Biggest Expense`,
+        message: `${topCategory.category} accounts for ${topCategory.percentage.toFixed(0)}% of your spending. This category had ${topCategory.count} transactions totaling $${topCategory.total.toFixed(2)}.`,
+        priority: 'medium',
+        category: topCategory.category,
+        amount: topCategory.total,
+      });
+    }
+
+    // 3. Spending Trend Insights
+    if (dailySpending.length >= 7) {
+      const recentWeek = dailySpending.slice(-7);
+      const previousWeek = dailySpending.slice(-14, -7);
+      
+      const recentTotal = recentWeek.reduce((sum, day) => sum + day.amount, 0);
+      const previousTotal = previousWeek.reduce((sum, day) => sum + day.amount, 0);
+      
+      if (previousTotal > 0) {
+        const changePercent = ((recentTotal - previousTotal) / previousTotal) * 100;
+        
+        if (Math.abs(changePercent) > 25) {
+          insights.push({
+            id: `insight-${insightId++}`,
+            type: changePercent > 0 ? 'warning' : 'success',
+            title: changePercent > 0 ? 'Spending Increased' : 'Spending Decreased',
+            message: `Your spending ${changePercent > 0 ? 'increased' : 'decreased'} by ${Math.abs(changePercent).toFixed(0)}% this week compared to last week.`,
+            priority: changePercent > 0 ? 'medium' : 'low',
+            amount: Math.abs(recentTotal - previousTotal),
+          });
+        }
+      }
+    }
+
+    // 4. Average Daily Spending Insight
+    const avgDaily = summary.totalSpent / summary.totalExpenses;
+    if (avgDaily > 50) {
+      insights.push({
+        id: `insight-${insightId++}`,
+        type: 'tip',
+        title: 'Daily Spending Pattern',
+        message: `Your average daily spending is $${avgDaily.toFixed(2)}. Setting daily spending goals could help manage your budget better.`,
+        priority: 'low',
+        action: 'Set daily limit',
+      });
+    }
+
+    // 5. Savings Opportunity Insights
+    const safeBudgets = budgets.filter(b => b.status === 'safe' && b.percentageUsed < 50);
+    if (safeBudgets.length > 0) {
+      const totalSavings = safeBudgets.reduce((sum, b) => sum + b.remainingAmount, 0);
+      insights.push({
+        id: `insight-${insightId++}`,
+        type: 'success',
+        title: 'Great Job Staying Under Budget!',
+        message: `You're doing well in ${safeBudgets.length} categories with $${totalSavings.toFixed(2)} left to budget. Consider allocating some to savings.`,
+        priority: 'low',
+        amount: totalSavings,
+        action: 'Transfer to savings',
+      });
+    }
+
+    // 6. No Budget Set Warning
+    const categoriesWithoutBudget = categories.filter(
+      cat => !budgets.some(b => b.category === cat.category)
+    );
+    
+    if (categoriesWithoutBudget.length > 0 && categoriesWithoutBudget[0].total > 100) {
+      insights.push({
+        id: `insight-${insightId++}`,
+        type: 'tip',
+        title: 'Consider Setting Budgets',
+        message: `You have ${categoriesWithoutBudget.length} categories without budgets. Setting budgets helps track and control spending.`,
+        priority: 'medium',
+        action: 'Set budgets',
+      });
+    }
+
+    // Sort insights by priority
+    const priorityOrder = { high: 0, medium: 1, low: 2 };
+    insights.sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+
+    return insights;
   } catch (error) {
-    console.error('Error in getBudgetStatus:', error);
+    console.error('Error generating insights:', error);
+    throw error;
+  }
+}
+
+/**
+ * Predict spending for next period using linear regression
+ */
+export async function getSpendingPredictions(
+  userId: string,
+  groupIds: string[],
+  months: number = 3
+): Promise<SpendingPrediction[]> {
+  try {
+    const predictions: SpendingPrediction[] = [];
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setMonth(startDate.getMonth() - months);
+
+    // Get historical category breakdown
+    const categories = await getCategoryBreakdown(userId, groupIds, startDate, endDate);
+
+    for (const category of categories) {
+      // Get monthly spending for this category
+      const monthlyData: number[] = [];
+      
+      for (let i = 0; i < months; i++) {
+        const monthStart = new Date();
+        monthStart.setMonth(monthStart.getMonth() - (months - i));
+        monthStart.setDate(1);
+        
+        const monthEnd = new Date(monthStart);
+        monthEnd.setMonth(monthEnd.getMonth() + 1);
+        monthEnd.setDate(0);
+
+        const monthCategories = await getCategoryBreakdown(
+          userId,
+          groupIds,
+          monthStart,
+          monthEnd
+        );
+        
+        const categoryData = monthCategories.find(c => c.category === category.category);
+        monthlyData.push(categoryData?.total || 0);
+      }
+
+      // Simple linear regression
+      const n = monthlyData.length;
+      const xSum = (n * (n + 1)) / 2;
+      const ySum = monthlyData.reduce((a, b) => a + b, 0);
+      const xySum = monthlyData.reduce((sum, y, i) => sum + (i + 1) * y, 0);
+      const xSquareSum = (n * (n + 1) * (2 * n + 1)) / 6;
+
+      const slope = (n * xySum - xSum * ySum) / (n * xSquareSum - xSum * xSum);
+      const intercept = (ySum - slope * xSum) / n;
+      
+      // Predict next month
+      const predictedAmount = slope * (n + 1) + intercept;
+      const lastAmount = monthlyData[monthlyData.length - 1];
+      
+      // Calculate trend
+      let trend: 'increasing' | 'decreasing' | 'stable';
+      const percentageChange = lastAmount > 0 ? ((predictedAmount - lastAmount) / lastAmount) * 100 : 0;
+      
+      if (Math.abs(percentageChange) < 5) {
+        trend = 'stable';
+      } else if (percentageChange > 0) {
+        trend = 'increasing';
+      } else {
+        trend = 'decreasing';
+      }
+
+      // Calculate confidence (based on variance)
+      const mean = ySum / n;
+      const variance = monthlyData.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / n;
+      const stdDev = Math.sqrt(variance);
+      const confidence = Math.max(0, Math.min(1, 1 - (stdDev / mean)));
+
+      predictions.push({
+        category: category.category,
+        predictedAmount: Math.max(0, predictedAmount),
+        confidence: isNaN(confidence) ? 0.5 : confidence,
+        trend,
+        percentageChange,
+      });
+    }
+
+    return predictions.sort((a, b) => b.predictedAmount - a.predictedAmount);
+  } catch (error) {
+    console.error('Error generating predictions:', error);
+    throw error;
+  }
+}
+
+/**
+ * Detect recurring expenses by analyzing patterns
+ */
+export async function detectRecurringExpenses(
+  userId: string,
+  groupIds: string[],
+  months: number = 6
+): Promise<RecurringExpense[]> {
+  try {
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setMonth(startDate.getMonth() - months);
+
+    // Get all expenses in the period
+    const expensesRef = collection(db, 'expenses');
+    const q = query(
+      expensesRef,
+      where('groupId', 'in', groupIds.length > 0 ? groupIds : ['no-group']),
+      where('date', '>=', startDate),
+      where('date', '<=', endDate)
+    );
+
+    const snapshot = await getDocs(q);
+    const expenses = snapshot.docs.map(doc => ({
+      ...doc.data(),
+      date: doc.data().date.toDate(),
+    }));
+
+    // Group by similar descriptions (normalized)
+    const expenseGroups = new Map<string, typeof expenses>();
+    
+    expenses.forEach(expense => {
+      const normalizedDesc = expense.description
+        .toLowerCase()
+        .replace(/\d+/g, '') // Remove numbers
+        .replace(/[^\w\s]/g, '') // Remove special chars
+        .trim();
+      
+      if (!expenseGroups.has(normalizedDesc)) {
+        expenseGroups.set(normalizedDesc, []);
+      }
+      expenseGroups.get(normalizedDesc)!.push(expense);
+    });
+
+    const recurring: RecurringExpense[] = [];
+
+    // Analyze each group for recurring patterns
+    expenseGroups.forEach((group, desc) => {
+      if (group.length < 3) return; // Need at least 3 occurrences
+
+      // Sort by date
+      group.sort((a, b) => a.date.getTime() - b.date.getTime());
+
+      // Calculate average interval
+      const intervals: number[] = [];
+      for (let i = 1; i < group.length; i++) {
+        const daysDiff = Math.floor(
+          (group[i].date.getTime() - group[i - 1].date.getTime()) / (1000 * 60 * 60 * 24)
+        );
+        intervals.push(daysDiff);
+      }
+
+      const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+      const intervalStdDev = Math.sqrt(
+        intervals.reduce((sum, val) => sum + Math.pow(val - avgInterval, 2), 0) / intervals.length
+      );
+
+      // Check if intervals are consistent (low standard deviation)
+      if (intervalStdDev / avgInterval < 0.3) {
+        // Determine frequency
+        let frequency: 'weekly' | 'monthly' | 'quarterly';
+        if (avgInterval <= 10) frequency = 'weekly';
+        else if (avgInterval <= 40) frequency = 'monthly';
+        else frequency = 'quarterly';
+
+        // Calculate average amount
+        const avgAmount = group.reduce((sum, e) => sum + e.amount, 0) / group.length;
+
+        // Predict next date
+        const lastDate = group[group.length - 1].date;
+        const nextDate = new Date(lastDate);
+        nextDate.setDate(nextDate.getDate() + avgInterval);
+
+        recurring.push({
+          description: group[0].description,
+          category: group[0].category,
+          averageAmount: avgAmount,
+          frequency,
+          nextExpectedDate: nextDate,
+          occurrences: group.length,
+        });
+      }
+    });
+
+    return recurring.sort((a, b) => b.averageAmount - a.averageAmount);
+  } catch (error) {
+    console.error('Error detecting recurring expenses:', error);
     throw error;
   }
 }

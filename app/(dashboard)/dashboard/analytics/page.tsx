@@ -9,8 +9,14 @@ import {
   getDailySpending,
   getBudgetStatus,
   getTopExpenses,
+  getSpendingInsights,
+  getSpendingPredictions,
+  detectRecurringExpenses,
   type BudgetStatus as BudgetStatusType,
   type TopExpense,
+  type SpendingInsight,
+  type SpendingPrediction,
+  type RecurringExpense,
 } from '@/lib/firebase/analytics';
 import { CategoryPieChart } from '@/components/analytics/category-pie-chart';
 import { SpendingTrendChart } from '@/components/analytics/spending-trend-chart';
@@ -18,6 +24,9 @@ import { AnalyticsSummaryCards } from '@/components/analytics/analytics-summary-
 import { BudgetProgressChart } from '@/components/analytics/budget-progress-chart';
 import { MonthlyComparisonChart } from '@/components/analytics/monthly-comparison-chart';
 import { TopExpensesTable } from '@/components/analytics/top-expenses-table';
+import { InsightsPanel } from '@/components/analytics/insights-panel';
+import { PredictionsCard } from '@/components/analytics/predictions-card';
+import { RecurringExpensesCard } from '@/components/analytics/recurring-expenses-card';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -48,6 +57,11 @@ export default function AnalyticsPage() {
   const [budgetData, setBudgetData] = useState<BudgetStatusType[]>([]);
   const [topExpensesData, setTopExpensesData] = useState<TopExpense[]>([]);
   const [comparisonData, setComparisonData] = useState<Array<{ category: string; current: number; previous: number; change: number }>>([]);
+  
+  // AI Insights data
+  const [insightsData, setInsightsData] = useState<SpendingInsight[]>([]);
+  const [predictionsData, setPredictionsData] = useState<SpendingPrediction[]>([]);
+  const [recurringData, setRecurringData] = useState<RecurringExpense[]>([]);
 
   // Redirect if not authenticated
   useEffect(() => {
@@ -93,6 +107,8 @@ export default function AnalyticsPage() {
         previousStart.setDate(previousStart.getDate() - daysDiff);
 
         // Fetch all data in parallel
+        const groupIds: string[] = []; // TODO: Support filtering by group
+        
         const [
           summaryData,
           categoryBreakdown,
@@ -101,14 +117,20 @@ export default function AnalyticsPage() {
           topExpenses,
           currentBreakdown,
           previousBreakdown,
+          insights,
+          predictions,
+          recurring,
         ] = await Promise.all([
           getSpendingSummary(user.uid, startDate, endDate),
           getCategoryBreakdown(user.uid, startDate, endDate),
           getDailySpending(user.uid, startDate, endDate),
-          getBudgetStatus(user.uid),
+          getBudgetStatus(user.uid, new Date()),
           getTopExpenses(user.uid, startDate, endDate, 10),
           getCategoryBreakdown(user.uid, startDate, endDate),
           getCategoryBreakdown(user.uid, previousStart, previousEnd),
+          getSpendingInsights(user.uid, groupIds, { startDate, endDate }),
+          getSpendingPredictions(user.uid, groupIds, 3),
+          detectRecurringExpenses(user.uid, groupIds, 6),
         ]);
 
         // Update state
@@ -130,6 +152,9 @@ export default function AnalyticsPage() {
         setTrendData(dailySpending);
         setBudgetData(budgetStatus);
         setTopExpensesData(topExpenses);
+        setInsightsData(insights);
+        setPredictionsData(predictions);
+        setRecurringData(recurring);
 
         // Build comparison data
         const comparisonMap = new Map<string, { current: number; previous: number }>();
@@ -325,6 +350,26 @@ export default function AnalyticsPage() {
           />
         </div>
 
+        {/* AI Insights Section */}
+        <div className="mb-6">
+          <InsightsPanel
+            insights={insightsData}
+            isLoading={isLoading}
+          />
+        </div>
+
+        {/* Predictions & Recurring */}
+        <div className="grid gap-6 md:grid-cols-2 mb-6">
+          <PredictionsCard
+            predictions={predictionsData}
+            isLoading={isLoading}
+          />
+          <RecurringExpensesCard
+            expenses={recurringData}
+            isLoading={isLoading}
+          />
+        </div>
+
         {/* Future Features */}
         <Card>
           <CardHeader>
@@ -335,12 +380,10 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li>• AI-powered spending insights and recommendations</li>
-              <li>• Predictive analytics and budget forecasting</li>
               <li>• PDF reports with embedded charts</li>
               <li>• Custom date range picker</li>
-              <li>• Recurring expense detection</li>
               <li>• Budget alerts and notifications</li>
+              <li>• Expense categorization suggestions</li>
             </ul>
           </CardContent>
         </Card>
