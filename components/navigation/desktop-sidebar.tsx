@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, BarChart3, Receipt, Users, User, LogOut, ChevronLeft, Menu } from 'lucide-react';
+import { Home, BarChart3, Receipt, Users, User, DollarSign, LogOut, ChevronLeft, Menu } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { auth } from '@/lib/firebase/config';
@@ -24,6 +24,11 @@ const navItems = [
     name: 'Expenses',
     href: '/dashboard/expenses',
     icon: Receipt,
+  },
+  {
+    name: 'Settlements',
+    href: '/dashboard/settlements',
+    icon: DollarSign,
   },
   {
     name: 'Groups',

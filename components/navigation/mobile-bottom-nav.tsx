@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, BarChart3, Receipt, Users, User } from 'lucide-react';
+import { Home, BarChart3, Receipt, Users, DollarSign } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
@@ -21,14 +21,14 @@ const navItems = [
     icon: Receipt,
   },
   {
+    name: 'Settlements',
+    href: '/dashboard/settlements',
+    icon: DollarSign,
+  },
+  {
     name: 'Groups',
     href: '/dashboard/groups',
     icon: Users,
-  },
-  {
-    name: 'Profile',
-    href: '/dashboard/profile',
-    icon: User,
   },
 ];
 
@@ -37,7 +37,7 @@ export function MobileBottomNav() {
   const router = useRouter();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background border-t md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-sm border-t md:hidden supports-[backdrop-filter]:bg-background/80">
       <div className="flex items-center justify-around h-16 px-2">
         {navItems.map((item) => {
           const Icon = item.icon;
