@@ -542,17 +542,20 @@ export async function getDailySpending(
       dailyMap.set(dateKey, (dailyMap.get(dateKey) || 0) + userShare);
     });
     
-    // Fill in missing dates with 0
+    // Fill in missing dates with 0 using timestamp arithmetic
     const result: { date: string; amount: number }[] = [];
-    const currentDate = new Date(startDate);
+    let currentTimestamp = startDate.getTime();
+    const endTimestamp = endDate.getTime();
+    const oneDayMs = 24 * 60 * 60 * 1000;
     
-    while (currentDate <= endDate) {
+    while (currentTimestamp <= endTimestamp) {
+      const currentDate = new Date(currentTimestamp);
       const dateKey = format(currentDate, 'yyyy-MM-dd');
       result.push({
         date: dateKey,
         amount: dailyMap.get(dateKey) || 0,
       });
-      currentDate.setDate(currentDate.getDate() + 1);
+      currentTimestamp += oneDayMs;
     }
     
     return result;
@@ -770,10 +773,10 @@ export async function getSpendingInsights(
 
     // Get data for analysis
     const [summary, categories, budgets, dailySpending] = await Promise.all([
-      getSpendingSummary(userId, groupIds, dateRange.startDate, dateRange.endDate),
-      getCategoryBreakdown(userId, groupIds, dateRange.startDate, dateRange.endDate),
-      getBudgetStatus(userId, groupIds),
-      getDailySpending(userId, groupIds, dateRange.startDate, dateRange.endDate),
+      getSpendingSummary(userId, dateRange.startDate, dateRange.endDate),
+      getCategoryBreakdown(userId, dateRange.startDate, dateRange.endDate, groupIds),
+      getBudgetStatus(userId, dateRange.endDate),
+      getDailySpending(userId, dateRange.startDate, dateRange.endDate),
     ]);
 
     // 1. Budget Alert Insights
@@ -916,34 +919,30 @@ export async function getSpendingPredictions(
   try {
     const predictions: SpendingPrediction[] = [];
     const endDate = new Date();
-    const startDate = new Date();
-    startDate.setMonth(startDate.getMonth() - months);
+    // Use timestamp arithmetic to avoid invalid dates
+    const startDate = new Date(endDate.getTime() - months * 30 * 24 * 60 * 60 * 1000);
 
     // Get historical category breakdown
-    const categories = await getCategoryBreakdown(userId, groupIds, startDate, endDate);
+    const categories = await getCategoryBreakdown(userId, startDate, endDate, groupIds);
 
     for (const category of categories) {
       // Get monthly spending for this category
       const monthlyData: number[] = [];
       
       for (let i = 0; i < months; i++) {
-        const monthStart = new Date();
-        monthStart.setMonth(monthStart.getMonth() - (months - i));
-        monthStart.setDate(1);
-        
-        const monthEnd = new Date(monthStart);
-        monthEnd.setMonth(monthEnd.getMonth() + 1);
-        monthEnd.setDate(0);
+        // Use timestamp arithmetic to calculate month boundaries
+        const monthStart = new Date(endDate.getTime() - (months - i) * 30 * 24 * 60 * 60 * 1000);
+        const monthEnd = new Date(endDate.getTime() - (months - i - 1) * 30 * 24 * 60 * 60 * 1000);
 
         const monthCategories = await getCategoryBreakdown(
           userId,
-          groupIds,
           monthStart,
-          monthEnd
+          monthEnd,
+          groupIds
         );
         
         const categoryData = monthCategories.find(c => c.category === category.category);
-        monthlyData.push(categoryData?.total || 0);
+        monthlyData.push(categoryData?.totalSpent || 0);
       }
 
       // Simple linear regression

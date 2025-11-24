@@ -30,7 +30,7 @@ import { RecurringExpensesCard } from '@/components/analytics/recurring-expenses
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { subMonths, format } from 'date-fns';
+import { format } from 'date-fns';
 import { Download, RefreshCcw, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { exportAndDownloadExpenses } from '@/lib/export/csv-export';
@@ -79,31 +79,36 @@ export default function AnalyticsPage() {
       try {
         setIsLoading(true);
 
-        // Calculate date range
+        // Calculate date range using timestamps to avoid invalid dates
         const today = new Date();
-        const endDate = new Date(today); // Use current date, not end of month
+        const endDate = new Date(today);
         let startDate: Date;
 
+        // Calculate days to subtract based on date range
+        let daysToSubtract: number;
         switch (dateRange) {
           case '1M':
-            startDate = subMonths(today, 1);
+            daysToSubtract = 30;
             break;
           case '3M':
-            startDate = subMonths(today, 3);
+            daysToSubtract = 90;
             break;
           case '6M':
-            startDate = subMonths(today, 6);
+            daysToSubtract = 180;
             break;
           case '1Y':
-            startDate = subMonths(today, 12);
+            daysToSubtract = 365;
             break;
           default:
-            startDate = subMonths(today, 1);
+            daysToSubtract = 30;
         }
 
+        // Use timestamp arithmetic to ensure valid dates
+        startDate = new Date(today.getTime() - daysToSubtract * 24 * 60 * 60 * 1000);
+
         // Calculate previous period dates for comparison
-        const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-        const previousEnd = new Date(startDate.getTime() - 24 * 60 * 60 * 1000); // 1 day before startDate
+        const daysDiff = daysToSubtract;
+        const previousEnd = new Date(startDate.getTime() - 24 * 60 * 60 * 1000);
         const previousStart = new Date(previousEnd.getTime() - daysDiff * 24 * 60 * 60 * 1000);
 
         // Fetch all data in parallel
@@ -204,27 +209,32 @@ export default function AnalyticsPage() {
     try {
       setIsExporting(true);
       
-      // Calculate date range
+      // Calculate date range using timestamps to avoid invalid dates
       const today = new Date();
       const endDate = new Date(today);
       let startDate: Date;
 
+      // Calculate days to subtract based on date range
+      let daysToSubtract: number;
       switch (dateRange) {
         case '1M':
-          startDate = subMonths(today, 1);
+          daysToSubtract = 30;
           break;
         case '3M':
-          startDate = subMonths(today, 3);
+          daysToSubtract = 90;
           break;
         case '6M':
-          startDate = subMonths(today, 6);
+          daysToSubtract = 180;
           break;
         case '1Y':
-          startDate = subMonths(today, 12);
+          daysToSubtract = 365;
           break;
         default:
-          startDate = subMonths(today, 1);
+          daysToSubtract = 30;
       }
+
+      // Use timestamp arithmetic to ensure valid dates
+      startDate = new Date(today.getTime() - daysToSubtract * 24 * 60 * 60 * 1000);
 
       await exportAndDownloadExpenses({
         userId: user.uid,
@@ -342,7 +352,7 @@ export default function AnalyticsPage() {
           <MonthlyComparisonChart
             data={comparisonData}
             currentLabel={format(new Date(), 'MMM yyyy')}
-            previousLabel={format(subMonths(new Date(), 1), 'MMM yyyy')}
+            previousLabel={format(new Date(new Date().getTime() - 30 * 24 * 60 * 60 * 1000), 'MMM yyyy')}
             isLoading={isLoading}
           />
         </div>

@@ -18,11 +18,25 @@ interface SpendingTrendChartProps {
   isLoading?: boolean;
 }
 
-const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; name: string }>; label?: string }) => {
+const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ value: number; name: string; payload?: { date?: string } }> }) => {
   if (active && payload && payload.length) {
+    // Get the original date from the data payload
+    let formattedDate = '';
+    try {
+      const dateString = payload[0]?.payload?.date;
+      if (dateString) {
+        const date = parseISO(dateString);
+        if (!isNaN(date.getTime())) {
+          formattedDate = format(date, 'MMM d, yyyy');
+        }
+      }
+    } catch {
+      formattedDate = ''; // Fallback on error
+    }
+    
     return (
       <div className="bg-background border border-border rounded-lg shadow-lg p-3">
-        <p className="font-medium text-sm mb-2">{label ? format(parseISO(label), 'MMM d, yyyy') : ''}</p>
+        <p className="font-medium text-sm mb-2">{formattedDate}</p>
         {payload.map((entry, index) => (
           <p key={`tooltip-${index}`} className="text-sm text-muted-foreground">
             {entry.name}: {formatCurrency(entry.value)}
