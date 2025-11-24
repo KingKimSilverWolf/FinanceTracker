@@ -3,33 +3,34 @@
  */
 
 /**
- * Expense categories with icons and colors
+ * Expense categories with icons and colors (Pastel/Light Palette)
+ * Softer, more modern colors while maintaining brand recognition
  */
 export const EXPENSE_CATEGORIES = {
-  // Shared expense categories
-  RENT: { label: 'Rent', icon: '🏠', color: '#8B5CF6', type: 'shared' },
-  UTILITIES: { label: 'Utilities', icon: '💡', color: '#3B82F6', type: 'shared' },
-  GROCERIES: { label: 'Groceries', icon: '🛒', color: '#10B981', type: 'shared' },
-  INTERNET: { label: 'Internet', icon: '📡', color: '#06B6D4', type: 'shared' },
-  PARKING: { label: 'Parking', icon: '🅿️', color: '#6366F1', type: 'shared' },
-  FURNITURE: { label: 'Furniture', icon: '🛋️', color: '#8B5CF6', type: 'shared' },
-  HOUSEHOLD: { label: 'Household', icon: '🏡', color: '#14B8A6', type: 'shared' },
-  SUBSCRIPTIONS: { label: 'Subscriptions', icon: '📺', color: '#EC4899', type: 'shared' },
+  // Shared expense categories - Pastel versions
+  RENT: { label: 'Rent', icon: '🏠', color: '#C4B5FD', type: 'shared' },
+  UTILITIES: { label: 'Utilities', icon: '💡', color: '#93C5FD', type: 'shared' },
+  GROCERIES: { label: 'Groceries', icon: '🛒', color: '#6EE7B7', type: 'shared' },
+  INTERNET: { label: 'Internet', icon: '📡', color: '#67E8F9', type: 'shared' },
+  PARKING: { label: 'Parking', icon: '🅿️', color: '#A5B4FC', type: 'shared' },
+  FURNITURE: { label: 'Furniture', icon: '🛋️', color: '#DDD6FE', type: 'shared' },
+  HOUSEHOLD: { label: 'Household', icon: '🏡', color: '#5EEAD4', type: 'shared' },
+  SUBSCRIPTIONS: { label: 'Subscriptions', icon: '📺', color: '#F9A8D4', type: 'shared' },
   
-  // Personal expense categories
-  FOOD: { label: 'Food & Dining', icon: '🍔', color: '#F59E0B', type: 'personal' },
-  TRANSPORT: { label: 'Transportation', icon: '🚗', color: '#3B82F6', type: 'personal' },
-  ENTERTAINMENT: { label: 'Entertainment', icon: '🎮', color: '#EC4899', type: 'personal' },
-  HEALTHCARE: { label: 'Healthcare', icon: '🏥', color: '#EF4444', type: 'personal' },
-  SHOPPING: { label: 'Shopping', icon: '🛍️', color: '#8B5CF6', type: 'personal' },
-  EDUCATION: { label: 'Education', icon: '📚', color: '#6366F1', type: 'personal' },
-  FITNESS: { label: 'Fitness', icon: '💪', color: '#10B981', type: 'personal' },
-  PERSONAL_CARE: { label: 'Personal Care', icon: '💅', color: '#EC4899', type: 'personal' },
-  GIFTS: { label: 'Gifts', icon: '🎁', color: '#F43F5E', type: 'personal' },
-  TRAVEL: { label: 'Travel', icon: '✈️', color: '#06B6D4', type: 'personal' },
+  // Personal expense categories - Pastel versions
+  FOOD: { label: 'Food & Dining', icon: '🍔', color: '#FCD34D', type: 'personal' },
+  TRANSPORT: { label: 'Transportation', icon: '🚗', color: '#93C5FD', type: 'personal' },
+  ENTERTAINMENT: { label: 'Entertainment', icon: '🎮', color: '#F9A8D4', type: 'personal' },
+  HEALTHCARE: { label: 'Healthcare', icon: '🏥', color: '#FCA5A5', type: 'personal' },
+  SHOPPING: { label: 'Shopping', icon: '🛍️', color: '#DDD6FE', type: 'personal' },
+  EDUCATION: { label: 'Education', icon: '📚', color: '#A5B4FC', type: 'personal' },
+  FITNESS: { label: 'Fitness', icon: '💪', color: '#6EE7B7', type: 'personal' },
+  PERSONAL_CARE: { label: 'Personal Care', icon: '💅', color: '#FBCFE8', type: 'personal' },
+  GIFTS: { label: 'Gifts', icon: '🎁', color: '#FDA4AF', type: 'personal' },
+  TRAVEL: { label: 'Travel', icon: '✈️', color: '#A5F3FC', type: 'personal' },
   
   // Both
-  OTHER: { label: 'Other', icon: '📝', color: '#6B7280', type: 'both' },
+  OTHER: { label: 'Other', icon: '📝', color: '#D1D5DB', type: 'both' },
 } as const;
 
 export type ExpenseCategoryKey = keyof typeof EXPENSE_CATEGORIES;

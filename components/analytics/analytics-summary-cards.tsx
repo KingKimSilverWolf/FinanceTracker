@@ -48,8 +48,8 @@ export function AnalyticsSummaryCards({
                 {formatCurrency(totalSpent)}
               </p>
             </div>
-            <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/20 flex items-center justify-center">
-              <CreditCard className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+            <div className="h-14 w-14 rounded-2xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
+              <CreditCard className="h-7 w-7 text-blue-500 dark:text-blue-400" />
             </div>
           </div>
         </CardContent>
@@ -65,8 +65,8 @@ export function AnalyticsSummaryCards({
                 {formatCurrency(averagePerDay)}
               </p>
             </div>
-            <div className="h-12 w-12 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-              <Calendar className="h-6 w-6 text-green-600 dark:text-green-400" />
+            <div className="h-14 w-14 rounded-2xl bg-green-50 dark:bg-green-900/20 flex items-center justify-center">
+              <Calendar className="h-7 w-7 text-green-500 dark:text-green-400" />
             </div>
           </div>
         </CardContent>
@@ -80,8 +80,8 @@ export function AnalyticsSummaryCards({
               <p className="text-sm font-medium text-muted-foreground">Total Expenses</p>
               <p className="text-2xl font-bold mt-1">{expenseCount}</p>
             </div>
-            <div className="h-12 w-12 rounded-full bg-amber-100 dark:bg-amber-900/20 flex items-center justify-center">
-              <TrendingUp className="h-6 w-6 text-amber-600 dark:text-amber-400" />
+            <div className="h-14 w-14 rounded-2xl bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center">
+              <TrendingUp className="h-7 w-7 text-amber-500 dark:text-amber-400" />
             </div>
           </div>
         </CardContent>
@@ -95,8 +95,8 @@ export function AnalyticsSummaryCards({
               <p className="text-sm font-medium text-muted-foreground">Top Category</p>
               <p className="text-2xl font-bold mt-1 truncate">{topCategory || 'None'}</p>
             </div>
-            <div className="h-12 w-12 rounded-full bg-violet-100 dark:bg-violet-900/20 flex items-center justify-center">
-              <TrendingDown className="h-6 w-6 text-violet-600 dark:text-violet-400" />
+            <div className="h-14 w-14 rounded-2xl bg-violet-50 dark:bg-violet-900/20 flex items-center justify-center">
+              <TrendingDown className="h-7 w-7 text-violet-500 dark:text-violet-400" />
             </div>
           </div>
         </CardContent>

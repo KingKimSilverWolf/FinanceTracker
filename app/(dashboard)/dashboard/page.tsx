@@ -60,10 +60,10 @@ export default function DashboardPage() {
   return (
     <ProtectedRoute>
       <DashboardLayout>
-        <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-primary/10">
+        <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-background">
           {/* Header */}
-          <header className="border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
-          <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <header className="border-b border-border/50 bg-card/80 backdrop-blur supports-backdrop-filter:bg-card/80">
+          <div className="container mx-auto px-6 py-5 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
                 <span className="text-primary-foreground font-bold">D</span>
@@ -97,28 +97,28 @@ export default function DashboardPage() {
         </header>
 
         {/* Main Content */}
-        <main className="container mx-auto px-4 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">
+        <main className="container mx-auto px-6 py-10">
+          <div className="mb-10">
+            <h1 className="text-4xl font-bold mb-3">
               Welcome back, {userProfile?.displayName?.split(' ')[0] || 'there'}!
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-lg text-muted-foreground">
               Manage your shared expenses and settle up with your groups.
             </p>
           </div>
 
           {/* Quick Actions */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
             <Link href="/dashboard/groups">
               <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
                 <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Users className="h-5 w-5 text-primary" />
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                      <Users className="h-6 w-6 text-primary" />
                     </div>
                     <div>
                       <CardTitle className="text-lg">View Groups</CardTitle>
-                      <CardDescription>Manage your groups</CardDescription>
+                      <CardDescription className="text-sm">Manage your groups</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
@@ -128,13 +128,13 @@ export default function DashboardPage() {
             <Link href="/dashboard/expenses">
               <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
                 <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Receipt className="h-5 w-5 text-primary" />
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                      <Receipt className="h-6 w-6 text-primary" />
                     </div>
                     <div>
                       <CardTitle className="text-lg">View Expenses</CardTitle>
-                      <CardDescription>All your expenses</CardDescription>
+                      <CardDescription className="text-sm">All your expenses</CardDescription>
                     </div>
                   </div>
                 </CardHeader>
@@ -143,13 +143,13 @@ export default function DashboardPage() {
 
             <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
               <CardHeader>
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Receipt className="h-5 w-5 text-primary" />
+                <div className="flex items-center gap-4">
+                  <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                    <Receipt className="h-6 w-6 text-primary" />
                   </div>
                   <div className="flex-1">
                     <CardTitle className="text-lg">Add Expense</CardTitle>
-                    <CardDescription>Track shared or personal</CardDescription>
+                    <CardDescription className="text-sm">Track shared or personal</CardDescription>
                   </div>
                   <AddExpenseDialog />
                 </div>

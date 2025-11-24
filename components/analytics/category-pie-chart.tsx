@@ -4,15 +4,16 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recha
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/utils';
 
+// Pastel color palette for modern, light aesthetic
 const COLORS = [
-  '#3B82F6', // blue
-  '#10B981', // green
-  '#F59E0B', // amber
-  '#EF4444', // red
-  '#8B5CF6', // violet
-  '#EC4899', // pink
-  '#06B6D4', // cyan
-  '#84CC16', // lime
+  '#93C5FD', // light blue
+  '#6EE7B7', // light green
+  '#FCD34D', // light amber
+  '#FCA5A5', // light red
+  '#C4B5FD', // light violet
+  '#F9A8D4', // light pink
+  '#67E8F9', // light cyan
+  '#BEF264', // light lime
 ];
 
 interface CategoryData {

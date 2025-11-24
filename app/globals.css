@@ -1,44 +1,44 @@
 @import "tailwindcss";
 
 @theme {
-  /* Teal Wave - DuoFi Primary Colors */
+  /* Teal Wave - DuoFi Primary Colors (KEEP BRAND) */
   --color-primary: #14b8a6;
   --color-primary-foreground: #ffffff;
 
-  /* Backgrounds & Foregrounds */
-  --color-background: #ffffff;
-  --color-foreground: #0f172a;
+  /* Backgrounds & Foregrounds - Lighter, More Modern */
+  --color-background: #fafbfc;
+  --color-foreground: #1a202c;
 
-  /* Muted (subtle backgrounds) */
-  --color-muted: #f9fafb;
-  --color-muted-foreground: #64748b;
+  /* Muted (subtle backgrounds) - Softer */
+  --color-muted: #f7f8fa;
+  --color-muted-foreground: #718096;
 
-  /* Card */
+  /* Card - Pure White with Soft Shadow */
   --color-card: #ffffff;
-  --color-card-foreground: #0f172a;
+  --color-card-foreground: #2d3748;
 
   /* Popover */
   --color-popover: #ffffff;
-  --color-popover-foreground: #0f172a;
+  --color-popover-foreground: #2d3748;
 
-  /* Secondary/Accent colors */
-  --color-secondary: #f1f5f9;
-  --color-secondary-foreground: #0f172a;
+  /* Secondary/Accent colors - Lighter */
+  --color-secondary: #f7fafc;
+  --color-secondary-foreground: #2d3748;
 
-  --color-accent: #f1f5f9;
-  --color-accent-foreground: #0f172a;
+  --color-accent: #f0f9ff;
+  --color-accent-foreground: #0c4a6e;
 
-  /* Destructive (errors) */
-  --color-destructive: #ef4444;
+  /* Destructive (errors) - Softer Red */
+  --color-destructive: #f56565;
   --color-destructive-foreground: #ffffff;
 
-  /* Border, Input, Ring */
-  --color-border: #e5e7eb;
-  --color-input: #e5e7eb;
+  /* Border, Input, Ring - Lighter, Softer */
+  --color-border: #e2e8f0;
+  --color-input: #edf2f7;
   --color-ring: #14b8a6;
 
-  /* Border radius */
-  --radius: 0.5rem;
+  /* Border radius - More Rounded for Modern Look */
+  --radius: 0.75rem;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -83,6 +83,18 @@ body {
   color: theme(colors.foreground);
   font-feature-settings: "rlig" 1, "calt" 1;
   font-family: var(--font-geist-sans), sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Soft Card Shadows - Modern, Light Aesthetic */
+.card-soft-shadow {
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+}
+
+.card-soft-shadow:hover {
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+  transition: box-shadow 0.2s ease-in-out;
 }
 
 /* Custom scrollbar for webkit browsers */
