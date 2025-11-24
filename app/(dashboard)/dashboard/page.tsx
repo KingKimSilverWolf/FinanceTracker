@@ -15,6 +15,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { formatCurrency } from '@/lib/utils';
+import { getCardDesign } from '@/lib/constants/card-designs';
+import { cn } from '@/lib/utils';
 import { 
   Plus, 
   Users, 
@@ -33,7 +35,8 @@ import {
   ChevronRight,
   Sparkles,
   Zap,
-  Activity
+  Activity,
+  CreditCard
 } from 'lucide-react';
 
 interface DashboardExpense {
@@ -704,41 +707,53 @@ export default function DashboardPage() {
                       {groups.slice(0, 4).map((group) => {
                         const groupExpenses = expenses.filter(exp => exp.groupId === group.id);
                         const groupTotal = groupExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+                        const cardDesign = getCardDesign(group.cardDesign);
                         
                         return (
                           <Link key={group.id} href={`/dashboard/groups/${group.id}`}>
-                            <Card className="hover:shadow-md transition-all cursor-pointer h-full">
-                              <CardHeader className="pb-3">
-                                <div className="flex items-start justify-between">
-                                  <div className="flex-1 min-w-0">
-                                    <CardTitle className="text-base truncate">{group.name}</CardTitle>
-                                    {group.description && (
-                                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                                        {group.description}
-                                      </p>
-                                    )}
+                            {/* Mini Bank Card */}
+                            <div className={cn(
+                              'relative h-32 rounded-xl p-4 shadow-lg',
+                              'transition-all duration-300 hover:scale-105 hover:shadow-xl',
+                              'flex flex-col justify-between cursor-pointer',
+                              cardDesign.gradient,
+                              cardDesign.textColor
+                            )}>
+                              {/* Top - Chip */}
+                              <div className="flex items-start justify-between">
+                                <div className={cn('h-6 w-8 rounded', cardDesign.accentColor, 'backdrop-blur-sm')}>
+                                  <div className="h-full w-full grid grid-cols-3 gap-0.5 p-0.5">
+                                    {[...Array(9)].map((_, i) => (
+                                      <div key={i} className="bg-white/30 rounded-sm" />
+                                    ))}
                                   </div>
                                 </div>
-                              </CardHeader>
-                              <CardContent>
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <Badge variant="secondary" className="text-xs">
-                                      <Users className="h-3 w-3 mr-1" />
-                                      {group.members.length}
-                                    </Badge>
-                                    <Badge variant="outline" className="text-xs">
-                                      <Calendar className="h-3 w-3 mr-1" />
-                                      {groupExpenses.length}
-                                    </Badge>
-                                  </div>
-                                  <div className="text-right">
-                                    <p className="text-sm font-semibold">{formatCurrency(groupTotal)}</p>
-                                    <p className="text-xs text-muted-foreground">Total</p>
-                                  </div>
+                                <div className="text-[10px] font-bold opacity-60 tracking-widest">
+                                  DUOFI
                                 </div>
-                              </CardContent>
-                            </Card>
+                              </div>
+
+                              {/* Middle - Group Name */}
+                              <div>
+                                <h4 className="text-sm font-bold tracking-wide line-clamp-1">
+                                  {group.name}
+                                </h4>
+                              </div>
+
+                              {/* Bottom - Stats */}
+                              <div className="flex items-center justify-between text-xs">
+                                <div className="flex items-center gap-2 opacity-90">
+                                  <Users className="h-3 w-3" />
+                                  <span>{group.members.length}</span>
+                                  <span className="opacity-50">•</span>
+                                  <CreditCard className="h-3 w-3" />
+                                  <span>{groupExpenses.length}</span>
+                                </div>
+                                <div className="font-semibold">
+                                  {formatCurrency(groupTotal)}
+                                </div>
+                              </div>
+                            </div>
                           </Link>
                         );
                       })}

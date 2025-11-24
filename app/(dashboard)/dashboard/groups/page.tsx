@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { Users, Search } from 'lucide-react';
+import { Users, Search, CreditCard } from 'lucide-react';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import { DashboardLayout } from '@/components/layouts/dashboard-layout';
 import { CreateGroupDialog } from '@/components/groups/create-group-dialog';
@@ -13,6 +13,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { formatDate } from '@/lib/utils/index';
+import { getCardDesign } from '@/lib/constants/card-designs';
+import { cn } from '@/lib/utils';
 
 export default function GroupsPage() {
   const { user } = useAuth();
@@ -93,32 +95,76 @@ export default function GroupsPage() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {filteredGroups.map((group) => (
-                <Link href={`/dashboard/groups/${group.id}`} key={group.id}>
-                  <Card className="h-full transition-colors hover:bg-accent cursor-pointer">
-                    <CardHeader>
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <CardTitle className="line-clamp-1">{group.name}</CardTitle>
-                          <CardDescription className="line-clamp-2 mt-1">
-                            {group.description || 'No description'}
-                          </CardDescription>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {filteredGroups.map((group) => {
+                const cardDesign = getCardDesign(group.cardDesign);
+                return (
+                  <Link href={`/dashboard/groups/${group.id}`} key={group.id}>
+                    <div className="group cursor-pointer">
+                      {/* Bank Card Design */}
+                      <div className={cn(
+                        'relative h-52 rounded-2xl p-6 shadow-xl',
+                        'transition-all duration-300 hover:scale-105 hover:shadow-2xl',
+                        'flex flex-col justify-between',
+                        cardDesign.gradient,
+                        cardDesign.textColor
+                      )}>
+                        {/* Card Top - Chip & Contactless Icon */}
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-3">
+                            {/* Chip */}
+                            <div className={cn(
+                              'h-10 w-12 rounded-md',
+                              cardDesign.accentColor,
+                              'backdrop-blur-sm'
+                            )}>
+                              <div className="h-full w-full grid grid-cols-3 gap-0.5 p-1">
+                                {[...Array(9)].map((_, i) => (
+                                  <div key={i} className="bg-white/30 rounded-sm" />
+                                ))}
+                              </div>
+                            </div>
+                            {/* Contactless */}
+                            <div className={cn('h-6 w-6 rounded-full', cardDesign.accentColor, 'flex items-center justify-center')}>
+                              <CreditCard className="h-3 w-3 opacity-70" />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Card Middle - Group Name */}
+                        <div className="flex-1 flex items-center">
+                          <div>
+                            <h3 className="text-xl font-bold tracking-wide line-clamp-1 mb-1">
+                              {group.name}
+                            </h3>
+                            <p className="text-xs opacity-80 line-clamp-1">
+                              {group.description || 'No description'}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Card Bottom - Members & Date */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 opacity-80" />
+                            <span className="text-sm font-medium">
+                              {group.members.length} {group.members.length === 1 ? 'Member' : 'Members'}
+                            </span>
+                          </div>
+                          <div className="text-xs opacity-70">
+                            {formatDate(group.updatedAt)}
+                          </div>
+                        </div>
+
+                        {/* Card Brand/Logo Area */}
+                        <div className="absolute top-6 right-6 text-xs font-bold opacity-60 tracking-widest">
+                          DUOFI
                         </div>
                       </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-1 text-muted-foreground">
-                          <Users className="h-4 w-4" />
-                          <span>{group.members.length} members</span>
-                        </div>
-                        <Badge variant="secondary">{formatDate(group.updatedAt)}</Badge>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           )}
         </div>

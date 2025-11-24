@@ -32,6 +32,7 @@ export interface Group {
   description: string;
   createdBy: string;
   members: GroupMember[];
+  cardDesign: string; // Card design theme ID
   createdAt: Date;
   updatedAt: Date;
 }
@@ -69,13 +70,15 @@ export async function createGroup(
   createdBy: string,
   creatorEmail: string,
   creatorDisplayName: string,
-  creatorPhotoURL: string | null
+  creatorPhotoURL: string | null,
+  cardDesign: string = 'sunset'
 ): Promise<string> {
   const now = new Date();
   const groupRef = await addDoc(collection(db, 'groups'), {
     name,
     description,
     createdBy,
+    cardDesign,
     members: [
       {
         userId: createdBy,
@@ -110,6 +113,7 @@ export async function getGroup(groupId: string): Promise<Group | null> {
     name: data.name,
     description: data.description,
     createdBy: data.createdBy,
+    cardDesign: data.cardDesign || 'sunset',
     members: data.members.map((m: FirestoreMember) => ({
       ...m,
       joinedAt: m.joinedAt instanceof Date ? m.joinedAt : m.joinedAt?.toDate?.() || new Date(),
@@ -139,6 +143,7 @@ export async function getUserGroups(userId: string): Promise<Group[]> {
         name: data.name,
         description: data.description,
         createdBy: data.createdBy,
+        cardDesign: data.cardDesign || 'sunset',
         members: data.members.map((m: FirestoreMember) => ({
           ...m,
           joinedAt: m.joinedAt instanceof Date ? m.joinedAt : m.joinedAt?.toDate?.() || new Date(),
@@ -208,7 +213,7 @@ export async function removeGroupMember(groupId: string, userId: string): Promis
  */
 export async function updateGroup(
   groupId: string,
-  updates: { name?: string; description?: string }
+  updates: { name?: string; description?: string; cardDesign?: string }
 ): Promise<void> {
   const groupRef = doc(db, 'groups', groupId);
 
@@ -445,6 +450,7 @@ export function subscribeToUserGroups(
           name: data.name,
           description: data.description,
           createdBy: data.createdBy,
+          cardDesign: data.cardDesign || 'sunset',
           members,
           createdAt: data.createdAt?.toDate() || new Date(),
           updatedAt: data.updatedAt?.toDate() || new Date(),
@@ -484,6 +490,7 @@ export function subscribeToGroup(
       name: data.name,
       description: data.description,
       createdBy: data.createdBy,
+      cardDesign: data.cardDesign || 'sunset',
       members,
       createdAt: data.createdAt?.toDate() || new Date(),
       updatedAt: data.updatedAt?.toDate() || new Date(),

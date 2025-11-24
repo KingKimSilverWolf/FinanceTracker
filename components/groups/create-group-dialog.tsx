@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Plus } from 'lucide-react';
+import { Plus, CreditCard } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -28,11 +28,14 @@ import {
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { createGroup } from '@/lib/firebase/groups';
+import { CARD_DESIGNS, DEFAULT_CARD_DESIGN } from '@/lib/constants/card-designs';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
   name: z.string().min(2, 'Group name must be at least 2 characters'),
   description: z.string().optional(),
+  cardDesign: z.string(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -48,6 +51,7 @@ export function CreateGroupDialog() {
     defaultValues: {
       name: '',
       description: '',
+      cardDesign: DEFAULT_CARD_DESIGN,
     },
   });
 
@@ -66,7 +70,8 @@ export function CreateGroupDialog() {
         user.uid,
         userProfile.email,
         userProfile.displayName,
-        userProfile.photoURL
+        userProfile.photoURL,
+        data.cardDesign
       );
 
       toast.success('Group created successfully!');
@@ -127,6 +132,48 @@ export function CreateGroupDialog() {
                     <Input placeholder="e.g., Monthly rent and utilities" {...field} />
                   </FormControl>
                   <FormDescription>Add details about what expenses you&apos;ll track.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="cardDesign"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-2">
+                    <CreditCard className="h-4 w-4" />
+                    Card Design
+                  </FormLabel>
+                  <FormControl>
+                    <div className="grid grid-cols-2 gap-3">
+                      {CARD_DESIGNS.map((design) => (
+                        <button
+                          key={design.id}
+                          type="button"
+                          onClick={() => field.onChange(design.id)}
+                          className={cn(
+                            'relative h-24 rounded-lg overflow-hidden transition-all',
+                            'hover:scale-105 hover:shadow-lg',
+                            field.value === design.id
+                              ? 'ring-2 ring-primary ring-offset-2'
+                              : 'ring-1 ring-border'
+                          )}
+                        >
+                          <div className={cn('h-full w-full p-3 flex flex-col justify-between', design.gradient, design.textColor)}>
+                            <div className="flex items-center gap-2">
+                              <div className={cn('h-6 w-8 rounded', design.accentColor)} />
+                              <div className={cn('h-4 w-4 rounded-full', design.accentColor)} />
+                            </div>
+                            <div className="text-left">
+                              <p className="text-xs font-medium">{design.name}</p>
+                            </div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </FormControl>
+                  <FormDescription>Choose a card style for your group</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
