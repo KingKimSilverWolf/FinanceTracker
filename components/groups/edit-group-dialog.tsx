@@ -37,7 +37,7 @@ type FormData = z.infer<typeof formSchema>;
 
 interface EditGroupDialogProps {
   group: Group;
-  onUpdate: () => void;
+  onUpdate?: () => void;
 }
 
 export function EditGroupDialog({ group, onUpdate }: EditGroupDialogProps) {
@@ -63,7 +63,7 @@ export function EditGroupDialog({ group, onUpdate }: EditGroupDialogProps) {
 
       toast.success('Group updated successfully!');
       setOpen(false);
-      onUpdate();
+      onUpdate?.(); // Real-time listener will update automatically
     } catch (error) {
       console.error('Error updating group:', error);
       if (error instanceof Error) {

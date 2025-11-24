@@ -5,8 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Users, Trash2, Crown, Receipt, Plus } from 'lucide-react';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import { useAuth } from '@/lib/contexts/auth-context';
-import { getGroup, isGroupAdmin, deleteGroup, removeGroupMember, Group } from '@/lib/firebase/groups';
-import { getGroupExpenses, Expense } from '@/lib/firebase/expenses';
+import { subscribeToGroup, isGroupAdmin, deleteGroup, removeGroupMember, Group } from '@/lib/firebase/groups';
+import { subscribeToGroupExpenses, Expense } from '@/lib/firebase/expenses';
 import { getCategory } from '@/lib/constants/expenses';
 import { formatCurrency } from '@/lib/utils';
 import { EditGroupDialog } from '@/components/groups/edit-group-dialog';
@@ -43,38 +43,30 @@ export default function GroupDetailPage() {
   const [loadingExpenses, setLoadingExpenses] = useState(true);
   const groupId = params.id as string;
 
-  const loadGroup = useCallback(async () => {
-    try {
-      setLoading(true);
-      const groupData = await getGroup(groupId);
-      setGroup(groupData);
-    } catch (error) {
-      console.error('Error loading group:', error);
-      toast.error('Failed to load group');
-    } finally {
-      setLoading(false);
-    }
-  }, [groupId]);
-
-  const loadExpenses = useCallback(async () => {
-    try {
-      setLoadingExpenses(true);
-      const expenseData = await getGroupExpenses(groupId);
-      setExpenses(expenseData);
-    } catch (error) {
-      console.error('Error loading expenses:', error);
-      toast.error('Failed to load expenses');
-    } finally {
-      setLoadingExpenses(false);
-    }
-  }, [groupId]);
-
   useEffect(() => {
-    if (user && groupId) {
-      loadGroup();
-      loadExpenses();
-    }
-  }, [user, groupId, loadGroup, loadExpenses]);
+    if (!user || !groupId) return;
+
+    setLoading(true);
+    setLoadingExpenses(true);
+
+    // Subscribe to real-time group updates
+    const unsubscribeGroup = subscribeToGroup(groupId, (updatedGroup) => {
+      setGroup(updatedGroup);
+      setLoading(false);
+    });
+
+    // Subscribe to real-time expense updates
+    const unsubscribeExpenses = subscribeToGroupExpenses(groupId, (updatedExpenses) => {
+      setExpenses(updatedExpenses);
+      setLoadingExpenses(false);
+    });
+
+    // Cleanup subscriptions on unmount
+    return () => {
+      unsubscribeGroup();
+      unsubscribeExpenses();
+    };
+  }, [user, groupId]);
 
   async function handleDeleteGroup() {
     if (!group || !user) return;
@@ -120,7 +112,7 @@ export default function GroupDetailPage() {
     try {
       await removeGroupMember(groupId, memberId);
       toast.success(`${memberName} removed from group`);
-      loadGroup(); // Reload group data
+      // Real-time listener will update automatically
     } catch (error) {
       console.error('Error removing member:', error);
       if (error instanceof Error) {
@@ -189,7 +181,7 @@ export default function GroupDetailPage() {
               <div className="flex gap-2">
                 {isAdmin && (
                   <>
-                    <EditGroupDialog group={group} onUpdate={loadGroup} />
+                    <EditGroupDialog group={group} />
                     <AlertDialog>
                       <AlertDialogTrigger asChild>
                         <Button variant="destructive" size="sm">
@@ -317,10 +309,6 @@ export default function GroupDetailPage() {
                 <AddExpenseDialog
                   defaultType="shared"
                   defaultGroupId={groupId}
-                  onSuccess={() => {
-                    loadExpenses();
-                    loadGroup();
-                  }}
                 >
                   <Button size="sm">
                     <Plus className="mr-2 h-4 w-4" />

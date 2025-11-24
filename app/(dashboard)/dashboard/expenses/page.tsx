@@ -6,7 +6,7 @@ import { Receipt, Search, TrendingUp, Calendar } from 'lucide-react';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import { DashboardLayout } from '@/components/layouts/dashboard-layout';
 import { useAuth } from '@/lib/contexts/auth-context';
-import { getUserExpenses, Expense } from '@/lib/firebase/expenses';
+import { subscribeToUserExpenses, Expense } from '@/lib/firebase/expenses';
 import { AddExpenseDialog } from '@/components/expenses/add-expense-dialog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -23,26 +23,20 @@ export default function ExpensesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'shared' | 'personal'>('all');
 
-  const loadExpenses = useCallback(async () => {
+  useEffect(() => {
     if (!user) return;
 
-    try {
-      setLoading(true);
-      const userExpenses = await getUserExpenses(user.uid, 100);
-      setExpenses(userExpenses);
-    } catch (error) {
-      console.error('Error loading expenses:', error);
-      toast.error('Failed to load expenses');
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
+    setLoading(true);
 
-  useEffect(() => {
-    if (user) {
-      loadExpenses();
-    }
-  }, [user, loadExpenses]);
+    // Subscribe to real-time updates
+    const unsubscribe = subscribeToUserExpenses(user.uid, (updatedExpenses) => {
+      setExpenses(updatedExpenses);
+      setLoading(false);
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, [user]);
 
   // Filter expenses
   const filteredExpenses = expenses.filter((expense) => {
@@ -81,7 +75,7 @@ export default function ExpensesPage() {
               <h1 className="text-3xl font-bold tracking-tight">Expenses</h1>
               <p className="text-muted-foreground">Track all your shared and personal expenses</p>
             </div>
-            <AddExpenseDialog onSuccess={loadExpenses} />
+            <AddExpenseDialog />
           </div>
 
           {/* Summary Cards */}
@@ -167,7 +161,7 @@ export default function ExpensesPage() {
                     ? 'Try adjusting your search query or filters'
                     : 'Start tracking your expenses by adding your first expense.'}
                 </p>
-                {!searchQuery && <AddExpenseDialog onSuccess={loadExpenses} />}
+                {!searchQuery && <AddExpenseDialog />}
               </CardContent>
             </Card>
           ) : (

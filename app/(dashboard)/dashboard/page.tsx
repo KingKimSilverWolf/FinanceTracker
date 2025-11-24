@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { signOut } from '@/lib/firebase/auth';
-import { getUserGroups, Group } from '@/lib/firebase/groups';
+import { subscribeToUserGroups, Group } from '@/lib/firebase/groups';
 import { AddExpenseDialog } from '@/components/expenses/add-expense-dialog';
 import { DashboardLayout } from '@/components/layouts/dashboard-layout';
 import { Button } from '@/components/ui/button';
@@ -34,20 +34,16 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!user) return;
     
-    const loadGroups = async () => {
-      try {
-        setLoading(true);
-        const userGroups = await getUserGroups(user.uid);
-        setGroups(userGroups);
-      } catch (error) {
-        console.error('Error loading groups:', error);
-        toast.error('Failed to load groups');
-      } finally {
-        setLoading(false);
-      }
-    };
+    setLoading(true);
 
-    loadGroups();
+    // Subscribe to real-time updates
+    const unsubscribe = subscribeToUserGroups(user.uid, (updatedGroups) => {
+      setGroups(updatedGroups);
+      setLoading(false);
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
   }, [user]);
 
   const handleSignOut = async () => {

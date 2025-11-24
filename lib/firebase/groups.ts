@@ -12,6 +12,8 @@ import {
   arrayUnion,
   arrayRemove,
   Timestamp,
+  onSnapshot,
+  type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from './config';
 
@@ -410,5 +412,81 @@ export async function getGroupInvitations(groupId: string): Promise<GroupInvitat
       usedCount: data.usedCount || 0,
       isActive: data.isActive,
     };
+  });
+}
+
+/**
+ * Subscribe to real-time updates for user's groups
+ */
+export function subscribeToUserGroups(
+  userId: string,
+  callback: (groups: Group[]) => void
+): Unsubscribe {
+  const q = query(collection(db, 'groups'));
+
+  return onSnapshot(q, (querySnapshot) => {
+    const groups: Group[] = [];
+    
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      const members = (data.members || []).map((m: FirestoreMember) => ({
+        ...m,
+        joinedAt: typeof m.joinedAt === 'object' && 'toDate' in m.joinedAt 
+          ? m.joinedAt.toDate() 
+          : m.joinedAt as Date,
+      }));
+
+      // Check if user is a member
+      const isMember = members.some((m: GroupMember) => m.userId === userId);
+      
+      if (isMember) {
+        groups.push({
+          id: doc.id,
+          name: data.name,
+          description: data.description,
+          createdBy: data.createdBy,
+          members,
+          createdAt: data.createdAt?.toDate() || new Date(),
+          updatedAt: data.updatedAt?.toDate() || new Date(),
+        });
+      }
+    });
+
+    callback(groups);
+  });
+}
+
+/**
+ * Subscribe to real-time updates for a specific group
+ */
+export function subscribeToGroup(
+  groupId: string,
+  callback: (group: Group | null) => void
+): Unsubscribe {
+  const groupRef = doc(db, 'groups', groupId);
+
+  return onSnapshot(groupRef, (docSnapshot) => {
+    if (!docSnapshot.exists()) {
+      callback(null);
+      return;
+    }
+
+    const data = docSnapshot.data();
+    const members = (data.members || []).map((m: FirestoreMember) => ({
+      ...m,
+      joinedAt: typeof m.joinedAt === 'object' && 'toDate' in m.joinedAt 
+        ? m.joinedAt.toDate() 
+        : m.joinedAt as Date,
+    }));
+
+    callback({
+      id: docSnapshot.id,
+      name: data.name,
+      description: data.description,
+      createdBy: data.createdBy,
+      members,
+      createdAt: data.createdAt?.toDate() || new Date(),
+      updatedAt: data.updatedAt?.toDate() || new Date(),
+    });
   });
 }

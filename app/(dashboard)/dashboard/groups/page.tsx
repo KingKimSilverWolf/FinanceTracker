@@ -8,7 +8,7 @@ import { DashboardLayout } from '@/components/layouts/dashboard-layout';
 import { CreateGroupDialog } from '@/components/groups/create-group-dialog';
 import { JoinGroupDialog } from '@/components/groups/join-group-dialog';
 import { useAuth } from '@/lib/contexts/auth-context';
-import { getUserGroups, Group } from '@/lib/firebase/groups';
+import { subscribeToUserGroups, Group } from '@/lib/firebase/groups';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -20,25 +20,20 @@ export default function GroupsPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const loadGroups = useCallback(async () => {
+  useEffect(() => {
     if (!user) return;
 
-    try {
-      setLoading(true);
-      const userGroups = await getUserGroups(user.uid);
-      setGroups(userGroups);
-    } catch (error) {
-      console.error('Error loading groups:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
+    setLoading(true);
 
-  useEffect(() => {
-    if (user) {
-      loadGroups();
-    }
-  }, [user, loadGroups]);
+    // Subscribe to real-time updates
+    const unsubscribe = subscribeToUserGroups(user.uid, (updatedGroups) => {
+      setGroups(updatedGroups);
+      setLoading(false);
+    });
+
+    // Cleanup subscription on unmount
+    return () => unsubscribe();
+  }, [user]);
 
   const filteredGroups = groups.filter((group) =>
     group.name.toLowerCase().includes(searchQuery.toLowerCase())

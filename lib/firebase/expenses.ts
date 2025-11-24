@@ -11,6 +11,8 @@ import {
   orderBy,
   limit,
   serverTimestamp,
+  onSnapshot,
+  type Unsubscribe,
 } from 'firebase/firestore';
 import { db } from './config';
 import type { SplitMethod, ExpenseType } from '@/lib/constants/expenses';
@@ -278,4 +280,80 @@ export function validateSplitData(totalAmount: number, splitData: SplitData): bo
   const sum = Object.values(splitData).reduce((acc, amount) => acc + amount, 0);
   // Allow 1 cent difference due to rounding
   return Math.abs(sum - totalAmount) <= 1;
+}
+
+/**
+ * Subscribe to real-time updates for user's expenses
+ */
+export function subscribeToUserExpenses(
+  userId: string,
+  callback: (expenses: Expense[]) => void
+): Unsubscribe {
+  const q = query(
+    collection(db, 'expenses'),
+    where('userId', '==', userId),
+    orderBy('date', 'desc')
+  );
+
+  return onSnapshot(q, (querySnapshot) => {
+    const expenses: Expense[] = querySnapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        userId: data.userId,
+        groupId: data.groupId || null,
+        amount: data.amount,
+        category: data.category,
+        description: data.description,
+        date: data.date?.toDate() || new Date(),
+        type: data.type || 'personal',
+        paidBy: data.paidBy || null,
+        participants: data.participants || [],
+        splitMethod: data.splitMethod || null,
+        splitData: data.splitData || null,
+        createdAt: data.createdAt?.toDate() || new Date(),
+        updatedAt: data.updatedAt?.toDate() || new Date(),
+      };
+    });
+
+    callback(expenses);
+  });
+}
+
+/**
+ * Subscribe to real-time updates for group expenses
+ */
+export function subscribeToGroupExpenses(
+  groupId: string,
+  callback: (expenses: Expense[]) => void
+): Unsubscribe {
+  const q = query(
+    collection(db, 'expenses'),
+    where('groupId', '==', groupId),
+    orderBy('date', 'desc')
+  );
+
+  return onSnapshot(q, (querySnapshot) => {
+    const expenses: Expense[] = querySnapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        userId: data.userId,
+        groupId: data.groupId || null,
+        amount: data.amount,
+        category: data.category,
+        description: data.description,
+        date: data.date?.toDate() || new Date(),
+        type: data.type || 'personal',
+        paidBy: data.paidBy || null,
+        participants: data.participants || [],
+        splitMethod: data.splitMethod || null,
+        splitData: data.splitData || null,
+        createdAt: data.createdAt?.toDate() || new Date(),
+        updatedAt: data.updatedAt?.toDate() || new Date(),
+      };
+    });
+
+    callback(expenses);
+  });
 }
