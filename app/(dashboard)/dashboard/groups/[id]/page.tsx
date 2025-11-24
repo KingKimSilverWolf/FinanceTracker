@@ -200,13 +200,15 @@ export default function GroupDetailPage() {
                       <AlertDialogContent>
                         <AlertDialogHeader>
                           <AlertDialogTitle>Delete "{group.name}"?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete the group and all associated data including:
-                            <ul className="list-disc list-inside mt-2 space-y-1">
-                              <li><strong>{expenses.length}</strong> expenses</li>
-                              <li><strong>{group.members.length}</strong> member{group.members.length !== 1 ? 's' : ''}</li>
-                              <li>All settlement history</li>
-                            </ul>
+                          <AlertDialogDescription asChild>
+                            <div>
+                              <p>This action cannot be undone. This will permanently delete the group and all associated data including:</p>
+                              <ul className="list-disc list-inside mt-2 space-y-1">
+                                <li><strong>{expenses.length}</strong> expenses</li>
+                                <li><strong>{group.members.length}</strong> member{group.members.length !== 1 ? 's' : ''}</li>
+                                <li>All settlement history</li>
+                              </ul>
+                            </div>
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>

@@ -6,9 +6,12 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
+  query,
+  where,
   serverTimestamp,
   arrayUnion,
   arrayRemove,
+  Timestamp,
 } from 'firebase/firestore';
 import { db } from './config';
 
@@ -29,6 +32,20 @@ export interface Group {
   members: GroupMember[];
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface GroupInvitation {
+  id: string;
+  groupId: string;
+  groupName: string;
+  inviteCode: string;
+  createdBy: string;
+  createdByName: string;
+  createdAt: Date;
+  expiresAt: Date;
+  usageLimit: number | null; // null = unlimited
+  usedCount: number;
+  isActive: boolean;
 }
 
 // Internal Firestore member type
@@ -213,4 +230,185 @@ export async function deleteGroup(groupId: string): Promise<void> {
 export function isGroupAdmin(group: Group, userId: string): boolean {
   const member = group.members.find((m) => m.userId === userId);
   return member?.role === 'admin' || false;
+}
+
+/**
+ * Generate a random invite code
+ */
+function generateInviteCode(): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+  for (let i = 0; i < 8; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
+/**
+ * Create a group invitation
+ */
+export async function createGroupInvitation(
+  groupId: string,
+  groupName: string,
+  createdBy: string,
+  createdByName: string,
+  expiresInDays: number = 7,
+  usageLimit: number | null = null
+): Promise<GroupInvitation> {
+  const inviteCode = generateInviteCode();
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + expiresInDays * 24 * 60 * 60 * 1000);
+
+  const invitationData = {
+    groupId,
+    groupName,
+    inviteCode,
+    createdBy,
+    createdByName,
+    createdAt: serverTimestamp(),
+    expiresAt: Timestamp.fromDate(expiresAt),
+    usageLimit,
+    usedCount: 0,
+    isActive: true,
+  };
+
+  const docRef = await addDoc(collection(db, 'groupInvitations'), invitationData);
+
+  return {
+    id: docRef.id,
+    ...invitationData,
+    createdAt: now,
+    expiresAt,
+  };
+}
+
+/**
+ * Get a group invitation by code
+ */
+export async function getGroupInvitation(inviteCode: string): Promise<GroupInvitation | null> {
+  const q = query(
+    collection(db, 'groupInvitations'),
+    where('inviteCode', '==', inviteCode),
+    where('isActive', '==', true)
+  );
+
+  const querySnapshot = await getDocs(q);
+
+  if (querySnapshot.empty) {
+    return null;
+  }
+
+  const doc = querySnapshot.docs[0];
+  const data = doc.data();
+
+  return {
+    id: doc.id,
+    groupId: data.groupId,
+    groupName: data.groupName,
+    inviteCode: data.inviteCode,
+    createdBy: data.createdBy,
+    createdByName: data.createdByName,
+    createdAt: data.createdAt?.toDate() || new Date(),
+    expiresAt: data.expiresAt?.toDate() || new Date(),
+    usageLimit: data.usageLimit,
+    usedCount: data.usedCount || 0,
+    isActive: data.isActive,
+  };
+}
+
+/**
+ * Accept a group invitation and add user to group
+ */
+export async function acceptGroupInvitation(
+  inviteCode: string,
+  userId: string,
+  userEmail: string,
+  displayName: string,
+  photoURL: string | null
+): Promise<{ success: boolean; error?: string; groupId?: string }> {
+  try {
+    // Get the invitation
+    const invitation = await getGroupInvitation(inviteCode);
+
+    if (!invitation) {
+      return { success: false, error: 'Invalid or expired invitation code' };
+    }
+
+    // Check if invitation is still valid
+    const now = new Date();
+    if (now > invitation.expiresAt) {
+      return { success: false, error: 'This invitation has expired' };
+    }
+
+    // Check usage limit
+    if (invitation.usageLimit !== null && invitation.usedCount >= invitation.usageLimit) {
+      return { success: false, error: 'This invitation has reached its usage limit' };
+    }
+
+    // Get the group
+    const group = await getGroup(invitation.groupId);
+    if (!group) {
+      return { success: false, error: 'Group not found' };
+    }
+
+    // Check if user is already a member
+    const isAlreadyMember = group.members.some((m) => m.userId === userId);
+    if (isAlreadyMember) {
+      return { success: false, error: 'You are already a member of this group' };
+    }
+
+    // Add user to group
+    await addGroupMember(invitation.groupId, userId, userEmail, displayName, photoURL);
+
+    // Update invitation usage count
+    const invitationRef = doc(db, 'groupInvitations', invitation.id);
+    await updateDoc(invitationRef, {
+      usedCount: invitation.usedCount + 1,
+    });
+
+    return { success: true, groupId: invitation.groupId };
+  } catch (error) {
+    console.error('Error accepting invitation:', error);
+    return { success: false, error: 'Failed to join group. Please try again.' };
+  }
+}
+
+/**
+ * Deactivate a group invitation
+ */
+export async function deactivateGroupInvitation(invitationId: string): Promise<void> {
+  const invitationRef = doc(db, 'groupInvitations', invitationId);
+  await updateDoc(invitationRef, {
+    isActive: false,
+  });
+}
+
+/**
+ * Get all active invitations for a group
+ */
+export async function getGroupInvitations(groupId: string): Promise<GroupInvitation[]> {
+  const q = query(
+    collection(db, 'groupInvitations'),
+    where('groupId', '==', groupId),
+    where('isActive', '==', true)
+  );
+
+  const querySnapshot = await getDocs(q);
+
+  return querySnapshot.docs.map((doc) => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      groupId: data.groupId,
+      groupName: data.groupName,
+      inviteCode: data.inviteCode,
+      createdBy: data.createdBy,
+      createdByName: data.createdByName,
+      createdAt: data.createdAt?.toDate() || new Date(),
+      expiresAt: data.expiresAt?.toDate() || new Date(),
+      usageLimit: data.usageLimit,
+      usedCount: data.usedCount || 0,
+      isActive: data.isActive,
+    };
+  });
 }

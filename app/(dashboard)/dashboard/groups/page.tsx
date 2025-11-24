@@ -6,6 +6,7 @@ import { Users, Search } from 'lucide-react';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import { DashboardLayout } from '@/components/layouts/dashboard-layout';
 import { CreateGroupDialog } from '@/components/groups/create-group-dialog';
+import { JoinGroupDialog } from '@/components/groups/join-group-dialog';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { getUserGroups, Group } from '@/lib/firebase/groups';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -56,7 +57,10 @@ export default function GroupsPage() {
                 Manage your expense groups and track shared costs
               </p>
             </div>
-            <CreateGroupDialog />
+            <div className="flex gap-2">
+              <JoinGroupDialog />
+              <CreateGroupDialog />
+            </div>
           </div>
 
           {/* Search */}
