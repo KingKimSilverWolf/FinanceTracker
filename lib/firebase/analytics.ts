@@ -817,12 +817,12 @@ export async function getSpendingInsights(
     const sortedCategories = [...categories].sort((a, b) => b.total - a.total);
     const topCategory = sortedCategories[0];
     
-    if (topCategory && topCategory.percentage > 30) {
+    if (topCategory && topCategory.percentage > 30 && topCategory.total && topCategory.count) {
       insights.push({
         id: `insight-${insightId++}`,
         type: 'info',
         title: `${topCategory.category} is Your Biggest Expense`,
-        message: `${topCategory.category} accounts for ${topCategory.percentage.toFixed(0)}% of your spending. This category had ${topCategory.count} transactions totaling $${topCategory.total.toFixed(2)}.`,
+        message: `${topCategory.category} accounts for ${(topCategory.percentage || 0).toFixed(0)}% of your spending. This category had ${topCategory.count} transactions totaling $${(topCategory.total || 0).toFixed(2)}.`,
         priority: 'medium',
         category: topCategory.category,
         amount: topCategory.total,

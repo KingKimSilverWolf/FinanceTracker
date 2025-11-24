@@ -69,6 +69,10 @@ export async function createRecurringExpense(
   try {
     const recurringRef = collection(db, 'recurringExpenses');
     
+    // Calculate the next run date based on start date and frequency
+    // This prevents immediate execution when start date is today
+    const nextRun = calculateNextRunDate(formData.startDate, formData.frequency);
+    
     const recurringExpense = {
       description: formData.description,
       amount: formData.amount,
@@ -79,7 +83,7 @@ export async function createRecurringExpense(
       frequency: formData.frequency,
       startDate: Timestamp.fromDate(formData.startDate),
       endDate: formData.endDate ? Timestamp.fromDate(formData.endDate) : null,
-      nextRunDate: Timestamp.fromDate(formData.startDate),
+      nextRunDate: Timestamp.fromDate(nextRun),
       status: 'active' as RecurringStatus,
       createdBy: userId,
       createdAt: Timestamp.now(),
