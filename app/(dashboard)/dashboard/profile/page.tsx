@@ -7,9 +7,8 @@ import { useAuth } from '@/lib/contexts/auth-context';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Switch } from '@/components/ui/switch';
-import { ThemeToggle } from '@/components/settings/theme-toggle';
 import { getInitials } from '@/lib/utils';
-import { User, Mail, Calendar, Moon, Bell, DollarSign, Globe, Download, Shield, Smartphone } from 'lucide-react';
+import { User, Mail, Calendar, Bell, DollarSign, Globe, Download, Shield, Smartphone } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ProfilePage() {
@@ -114,24 +113,6 @@ export default function ProfilePage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-8">
-                  {/* Theme Settings */}
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between pb-4 border-b">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                          <Moon className="h-5 w-5 text-primary" />
-                        </div>
-                        <div>
-                          <p className="font-medium">Theme</p>
-                          <p className="text-sm text-muted-foreground">
-                            Switch between light and dark mode
-                          </p>
-                        </div>
-                      </div>
-                      <ThemeToggle />
-                    </div>
-                  </div>
-
                   {/* Notifications */}
                   <div className="space-y-4">
                     <div className="flex items-center gap-3 pb-2">
