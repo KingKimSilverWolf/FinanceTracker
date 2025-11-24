@@ -7,7 +7,27 @@ DuoFi requires composite indexes in Firestore for efficient querying. Follow the
 
 ## Required Indexes
 
-### 1. Expenses Collection - Index for Group and Date Queries
+### 1. Expenses Collection - Index for User and Date Queries
+
+**Collection:** `expenses`  
+**Fields:**
+- `userId` (Ascending)
+- `date` (Descending)
+- `__name__` (Descending)
+
+**Query Scope:** Collection
+
+**Create Index:**
+Click this link or manually create in Firebase Console:
+```
+https://console.firebase.google.com/v1/r/project/duofi-69b36/firestore/indexes?create_composite=Ckxwcm9qZWN0cy9kdW9maS02OWIzNi9kYXRhYmFzZXMvKGRlZmF1bHQpL2NvbGxlY3Rpb25Hcm91cHMvZXhwZW5zZXMvaW5kZXhlcy9fEAEaCgoGdXNlcklkEAEaCAoEZGF0ZRACGgwKCF9fbmFtZV9fEAI
+```
+
+**Purpose:** Enables queries that filter by userId and sort by date (most analytics queries)
+
+---
+
+### 2. Expenses Collection - Index for Group and Date Queries
 
 **Collection:** `expenses`  
 **Fields:**
@@ -27,7 +47,7 @@ https://console.firebase.google.com/v1/r/project/duofi-69b36/firestore/indexes?c
 
 ---
 
-### 2. Expenses Collection - Index for Amount and Date Queries
+### 3. Expenses Collection - Index for Amount and Date Queries
 
 **Collection:** `expenses`  
 **Fields:**
@@ -56,7 +76,17 @@ If the links don't work, follow these steps:
 2. Select your project: `duofi-69b36`
 3. Navigate to **Firestore Database** → **Indexes** tab
 
-### Step 2: Create First Index (GroupId + Date)
+### Step 2: Create First Index (UserId + Date)
+1. Click **"Create Index"**
+2. Select Collection: `expenses`
+3. Add fields in order:
+   - Field: `userId`, Order: **Ascending**
+   - Field: `date`, Order: **Descending**
+4. Query scope: **Collection**
+5. Click **"Create"**
+6. Wait 2-5 minutes for index to build
+
+### Step 3: Create Second Index (GroupId + Date)
 1. Click **"Create Index"**
 2. Select Collection: `expenses`
 3. Add fields in order:
@@ -66,7 +96,7 @@ If the links don't work, follow these steps:
 5. Click **"Create"**
 6. Wait 2-5 minutes for index to build
 
-### Step 3: Create Second Index (Amount + Date)
+### Step 4: Create Third Index (Amount + Date)
 1. Click **"Create Index"** again
 2. Select Collection: `expenses`
 3. Add fields in order:
@@ -95,7 +125,25 @@ After creating indexes:
 
 ## Why These Indexes Are Needed
 
-### Index 1: GroupId + Date
+### Index 1: UserId + Date
+Used by queries in:
+- `getSpendingSummary()` - Fetches user's expenses in date range
+- `getCategoryBreakdown()` - User's category analytics
+- `getDailySpending()` - User's daily spending data
+- Most analytics functions that query by user
+
+**Query Pattern:**
+```typescript
+query(
+  expensesRef,
+  where('userId', '==', userId),
+  where('date', '>=', startDate),
+  where('date', '<=', endDate),
+  orderBy('date', 'desc')
+)
+```
+
+### Index 2: GroupId + Date
 Used by queries in:
 - `detectRecurringExpenses()` - Fetches expenses by group and date range
 - Group-filtered analytics queries
@@ -110,7 +158,7 @@ query(
 )
 ```
 
-### Index 2: Amount + Date
+### Index 3: Amount + Date
 Used by queries in:
 - `getTopExpenses()` - Fetches highest expenses sorted by amount
 - Analytics queries that need expense ranking
@@ -186,8 +234,9 @@ Fields: status (Asc), groupId (Asc), date (Desc)
 
 | Index | Collection | Fields | Purpose |
 |-------|-----------|--------|---------|
-| 1 | expenses | groupId ↑, date ↑ | Group + date filtering |
-| 2 | expenses | amount ↓, date ↓ | Top expenses ranking |
+| 1 | expenses | userId ↑, date ↓ | User + date filtering |
+| 2 | expenses | groupId ↑, date ↑ | Group + date filtering |
+| 3 | expenses | amount ↓, date ↓ | Top expenses ranking |
 
 **Legend:**
 - ↑ = Ascending

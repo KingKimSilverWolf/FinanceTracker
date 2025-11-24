@@ -103,10 +103,8 @@ export default function AnalyticsPage() {
 
         // Calculate previous period dates for comparison
         const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-        const previousEnd = new Date(startDate);
-        previousEnd.setDate(previousEnd.getDate() - 1);
-        const previousStart = new Date(previousEnd);
-        previousStart.setDate(previousStart.getDate() - daysDiff);
+        const previousEnd = new Date(startDate.getTime() - 24 * 60 * 60 * 1000); // 1 day before startDate
+        const previousStart = new Date(previousEnd.getTime() - daysDiff * 24 * 60 * 60 * 1000);
 
         // Fetch all data in parallel
         const groupIds: string[] = []; // TODO: Support filtering by group
@@ -154,6 +152,9 @@ export default function AnalyticsPage() {
         setTrendData(dailySpending);
         setBudgetData(budgetStatus);
         setTopExpensesData(topExpenses);
+        setInsightsData(insights);
+        setPredictionsData(predictions);
+        setRecurringData(recurring);
         setInsightsData(insights);
         setPredictionsData(predictions);
         setRecurringData(recurring);
