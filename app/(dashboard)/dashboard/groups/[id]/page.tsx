@@ -13,11 +13,23 @@ import { EditGroupDialog } from '@/components/groups/edit-group-dialog';
 import { InviteMemberDialog } from '@/components/groups/invite-member-dialog';
 import { AddExpenseDialog } from '@/components/expenses/add-expense-dialog';
 import { GroupBalanceDashboard } from '@/components/settlements/group-balance-dashboard';
+import { calculatePersonBalances, calculateOptimalSettlements } from '@/lib/settlement/calculations';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { getInitials } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -67,11 +79,6 @@ export default function GroupDetailPage() {
   async function handleDeleteGroup() {
     if (!group || !user) return;
 
-    const confirmed = confirm(
-      `Are you sure you want to delete "${group.name}"? This action cannot be undone.`
-    );
-    if (!confirmed) return;
-
     try {
       await deleteGroup(groupId);
       toast.success('Group deleted successfully');
@@ -85,6 +92,22 @@ export default function GroupDetailPage() {
       }
     }
   }
+
+  // Calculate pending settlements
+  const pendingSettlements = expenses.length > 0 && group 
+    ? (() => {
+        const userMap = new Map(group.members.map(m => [m.userId, m.displayName || m.email]));
+        const sharedExpenses = expenses
+          .filter(e => e.type === 'shared' && e.paidBy)
+          .map(e => ({
+            paidBy: e.paidBy!,
+            amount: e.amount,
+            splitBetween: e.participants,
+          }));
+        const balances = calculatePersonBalances(sharedExpenses, userMap);
+        return calculateOptimalSettlements(balances).length;
+      })()
+    : 0;
 
   async function handleRemoveMember(memberId: string, memberName: string) {
     if (!group || !user) return;
@@ -167,10 +190,36 @@ export default function GroupDetailPage() {
                 {isAdmin && (
                   <>
                     <EditGroupDialog group={group} onUpdate={loadGroup} />
-                    <Button variant="destructive" size="sm" onClick={handleDeleteGroup}>
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete Group
-                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button variant="destructive" size="sm">
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete Group
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete "{group.name}"?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the group and all associated data including:
+                            <ul className="list-disc list-inside mt-2 space-y-1">
+                              <li><strong>{expenses.length}</strong> expenses</li>
+                              <li><strong>{group.members.length}</strong> member{group.members.length !== 1 ? 's' : ''}</li>
+                              <li>All settlement history</li>
+                            </ul>
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={handleDeleteGroup}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Delete Group
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </>
                 )}
               </div>
@@ -249,7 +298,7 @@ export default function GroupDetailPage() {
                 <Separator />
                 <div>
                   <p className="text-sm text-muted-foreground">Pending Settlements</p>
-                  <p className="text-2xl font-bold">Coming Soon</p>
+                  <p className="text-2xl font-bold">{pendingSettlements}</p>
                 </div>
               </CardContent>
             </Card>
