@@ -1,14 +1,17 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { signOut } from '@/lib/firebase/auth';
+import { getUserGroups, Group } from '@/lib/firebase/groups';
 import { AddExpenseDialog } from '@/components/expenses/add-expense-dialog';
 import { DashboardLayout } from '@/components/layouts/dashboard-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,11 +23,32 @@ import {
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { getInitials } from '@/lib/utils';
-import { Plus, Users, Receipt, TrendingUp } from 'lucide-react';
+import { Plus, Users, Receipt, TrendingUp, Crown } from 'lucide-react';
 
 export default function DashboardPage() {
   const { user, userProfile } = useAuth();
   const router = useRouter();
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    
+    const loadGroups = async () => {
+      try {
+        setLoading(true);
+        const userGroups = await getUserGroups(user.uid);
+        setGroups(userGroups);
+      } catch (error) {
+        console.error('Error loading groups:', error);
+        toast.error('Failed to load groups');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadGroups();
+  }, [user]);
 
   const handleSignOut = async () => {
     try {
@@ -153,29 +177,79 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          {/* Empty State */}
+          {/* Groups Section */}
           <Card>
             <CardHeader>
-              <CardTitle>Your Groups</CardTitle>
-              <CardDescription>Groups you&apos;re part of will appear here</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                  <TrendingUp className="h-8 w-8 text-primary" />
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle>Your Groups</CardTitle>
+                  <CardDescription>Groups you&apos;re part of will appear here</CardDescription>
                 </div>
-                <h3 className="text-lg font-semibold mb-2">No groups yet</h3>
-                <p className="text-muted-foreground mb-6 max-w-md">
-                  Create your first group to start tracking shared expenses with friends, roommates,
-                  or family.
-                </p>
                 <Link href="/dashboard/groups">
-                  <Button>
-                    <Plus className="mr-2 h-4 w-4" />
-                    Create Your First Group
+                  <Button variant="outline" size="sm">
+                    View All
                   </Button>
                 </Link>
               </div>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <p className="text-muted-foreground">Loading groups...</p>
+                </div>
+              ) : groups.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                    <Users className="h-8 w-8 text-primary" />
+                  </div>
+                  <h3 className="text-lg font-semibold mb-2">No groups yet</h3>
+                  <p className="text-muted-foreground mb-6 max-w-md">
+                    Create your first group to start tracking shared expenses with friends, roommates,
+                    or family.
+                  </p>
+                  <Link href="/dashboard/groups">
+                    <Button>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Create Your First Group
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                  {groups.slice(0, 6).map((group) => {
+                    const isAdmin = group.createdBy === user?.uid;
+                    return (
+                      <Link key={group.id} href={`/dashboard/groups/${group.id}`}>
+                        <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
+                          <CardHeader>
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <CardTitle className="text-lg flex items-center gap-2">
+                                  {group.name}
+                                  {isAdmin && (
+                                    <Crown className="h-4 w-4 text-yellow-500" />
+                                  )}
+                                </CardTitle>
+                                {group.description && (
+                                  <CardDescription className="mt-1 line-clamp-2">
+                                    {group.description}
+                                  </CardDescription>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2 mt-3">
+                              <Badge variant="secondary">
+                                <Users className="h-3 w-3 mr-1" />
+                                {group.members.length} member{group.members.length !== 1 ? 's' : ''}
+                              </Badge>
+                            </div>
+                          </CardHeader>
+                        </Card>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
             </CardContent>
           </Card>
         </main>
