@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, BarChart3, Receipt, Users, DollarSign } from 'lucide-react';
+import { Home, BarChart3, Receipt, Users, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
@@ -21,9 +21,9 @@ const navItems = [
     icon: Receipt,
   },
   {
-    name: 'Settlements',
-    href: '/dashboard/settlements',
-    icon: DollarSign,
+    name: 'Recurring',
+    href: '/dashboard/recurring',
+    icon: Clock,
   },
   {
     name: 'Groups',

@@ -1,13 +1,13 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, BarChart3, Receipt, Users, User, DollarSign, LogOut, ChevronLeft, Menu } from 'lucide-react';
+import { Home, BarChart3, Receipt, Users, User, DollarSign, LogOut, ChevronLeft, Menu, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { auth } from '@/lib/firebase/config';
 import { signOut } from 'firebase/auth';
 import { toast } from 'sonner';
-import { useState } from 'react';
+import { useSidebar } from '@/lib/contexts/sidebar-context';
 
 const navItems = [
   {
@@ -24,6 +24,11 @@ const navItems = [
     name: 'Expenses',
     href: '/dashboard/expenses',
     icon: Receipt,
+  },
+  {
+    name: 'Recurring',
+    href: '/dashboard/recurring',
+    icon: Clock,
   },
   {
     name: 'Settlements',
@@ -45,7 +50,7 @@ const navItems = [
 export function DesktopSidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const { isCollapsed, setIsCollapsed } = useSidebar();
 
   const handleLogout = async () => {
     try {

@@ -1,8 +1,10 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/contexts/auth-context";
 import { Toaster } from "@/components/ui/sonner";
+import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
+import { RecurringAutomationProcessor } from "@/components/recurring/automation-processor";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,6 +19,28 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "DuoFi - Finance for Two or More",
   description: "Track shared expenses, split bills, and settle up with friends, roommates, or family. Simplified expense tracking for groups of 2+.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "DuoFi",
+  },
+  icons: {
+    icon: [
+      { url: "/icon-placeholder.svg", sizes: "any", type: "image/svg+xml" },
+    ],
+    apple: [
+      { url: "/icon-placeholder.svg", sizes: "any", type: "image/svg+xml" },
+    ],
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: "#14b8a6",
 };
 
 export default function RootLayout({
@@ -29,7 +53,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <ServiceWorkerRegister />
         <AuthProvider>
+          <RecurringAutomationProcessor />
           {children}
           <Toaster />
         </AuthProvider>
