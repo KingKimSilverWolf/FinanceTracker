@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { ArrowRight, CheckCircle2, Clock } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -8,12 +9,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { SimplifiedTransaction } from '@/lib/firebase/settlements';
 import { formatCurrency, getInitials } from '@/lib/utils';
 import { cn } from '@/lib/utils';
+import { SettlementPaymentDialog } from './settlement-payment-dialog';
 
 interface SimplifiedTransactionCardProps {
   transaction: SimplifiedTransaction;
   currentUserId: string;
   onMarkAsSettled?: (transaction: SimplifiedTransaction) => void;
   onViewSettlement?: (settlementId: string) => void;
+  onPaymentRecorded?: () => void;
 }
 
 export function SimplifiedTransactionCard({
@@ -21,7 +24,9 @@ export function SimplifiedTransactionCard({
   currentUserId,
   onMarkAsSettled,
   onViewSettlement,
+  onPaymentRecorded,
 }: SimplifiedTransactionCardProps) {
+  const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const isFromCurrentUser = transaction.fromUserId === currentUserId;
   const isToCurrentUser = transaction.toUserId === currentUserId;
   const isInvolved = isFromCurrentUser || isToCurrentUser;
@@ -87,13 +92,13 @@ export function SimplifiedTransactionCard({
               </p>
             </div>
 
-            {transaction.status === 'pending' && isInvolved && onMarkAsSettled && (
+            {transaction.status === 'pending' && isInvolved && (
               <Button
                 size="sm"
-                onClick={() => onMarkAsSettled(transaction)}
+                onClick={() => setPaymentDialogOpen(true)}
                 className="shrink-0"
               >
-                Mark Settled
+                Mark as Paid
               </Button>
             )}
 
@@ -132,6 +137,15 @@ export function SimplifiedTransactionCard({
           </div>
         )}
       </CardContent>
+
+      {/* Payment Dialog */}
+      <SettlementPaymentDialog
+        transaction={transaction}
+        currentUserId={currentUserId}
+        open={paymentDialogOpen}
+        onOpenChange={setPaymentDialogOpen}
+        onSuccess={onPaymentRecorded}
+      />
     </Card>
   );
 }

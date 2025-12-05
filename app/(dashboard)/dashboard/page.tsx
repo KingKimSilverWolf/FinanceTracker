@@ -11,6 +11,8 @@ import type { RecurringExpenseStats } from '@/lib/recurring/types';
 import { calculatePersonBalances, calculateOptimalSettlements } from '@/lib/settlement/calculations';
 import { AddExpenseDialog } from '@/components/expenses/add-expense-dialog';
 import { DashboardLayout } from '@/components/layouts/dashboard-layout';
+import { OnboardingFlow } from '@/components/onboarding/onboarding-flow';
+import { OnboardingChecklist } from '@/components/onboarding/onboarding-checklist';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -59,6 +61,8 @@ export default function DashboardPage() {
   const [expenses, setExpenses] = useState<DashboardExpense[]>([]);
   const [recurringStats, setRecurringStats] = useState<RecurringExpenseStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [checklistDismissed, setChecklistDismissed] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -92,11 +96,24 @@ export default function DashboardPage() {
     // Load recurring stats
     getRecurringExpenseStats(user.uid).then(setRecurringStats);
 
+    // Check if this is a new user (no groups and no expenses)
+    const checkForNewUser = () => {
+      const hasOnboarded = localStorage.getItem('duofi-onboarded');
+      if (!hasOnboarded && groups.length === 0 && expenses.length === 0 && !loading) {
+        // Small delay to ensure dashboard loads first
+        setTimeout(() => {
+          setShowOnboarding(true);
+        }, 500);
+      }
+    };
+
+    checkForNewUser();
+
     return () => {
       unsubscribeGroups();
       unsubscribeExpenses();
     };
-  }, [user]);
+  }, [user, groups.length, expenses.length, loading]);
 
   // Calculate comprehensive dashboard statistics
   const stats = useMemo(() => {
@@ -243,6 +260,15 @@ export default function DashboardPage() {
                 Here&apos;s your financial overview for {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
               </p>
             </div>
+
+            {/* Onboarding Checklist */}
+            {!checklistDismissed && (groups.length > 0 || expenses.length > 0) && (groups.length < 2 || expenses.length < 3) && (
+              <OnboardingChecklist
+                hasGroups={groups.length > 0}
+                hasExpenses={expenses.length > 0}
+                onDismiss={() => setChecklistDismissed(true)}
+              />
+            )}
             
             {/* Quick Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -765,6 +791,16 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* Onboarding Flow Dialog */}
+        <OnboardingFlow
+          open={showOnboarding}
+          onOpenChange={setShowOnboarding}
+          onComplete={() => {
+            localStorage.setItem('duofi-onboarded', 'true');
+            setShowOnboarding(false);
+          }}
+        />
       </DashboardLayout>
     </ProtectedRoute>
   );

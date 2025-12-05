@@ -399,7 +399,121 @@ export async function createSettlement(
 }
 
 /**
- * Mark settlement as completed
+ * Mark a settlement as paid
+ * Creates an offsetting expense to record the payment
+ * Sends notifications to both parties
+ * Only involved parties can mark as paid
+ */
+export async function markSettlementAsPaid(
+  settlementId: string,
+  userId: string,
+  paymentMethod: string = 'Other',
+  notes?: string
+): Promise<string> {
+  const settlementRef = doc(db, 'settlements', settlementId);
+  const settlementDoc = await getDoc(settlementRef);
+
+  if (!settlementDoc.exists()) {
+    throw new Error('Settlement not found');
+  }
+
+  const settlement = settlementDoc.data() as Omit<Settlement, 'id'>;
+
+  // Validation: Only involved parties can mark as paid
+  if (userId !== settlement.fromUserId && userId !== settlement.toUserId) {
+    throw new Error('Only involved parties can mark settlement as paid');
+  }
+
+  // Validation: Cannot mark as paid if not pending
+  if (settlement.status !== 'pending') {
+    throw new Error(`Settlement is ${settlement.status}, cannot mark as paid`);
+  }
+
+  // Get group for member info
+  const group = await getGroup(settlement.groupId);
+  if (!group) {
+    throw new Error('Group not found');
+  }
+
+  // Find member names for description
+  const fromMember = group.members.find(m => m.userId === settlement.fromUserId);
+  const toMember = group.members.find(m => m.userId === settlement.toUserId);
+  
+  if (!fromMember || !toMember) {
+    throw new Error('Settlement members not found in group');
+  }
+
+  // Create offsetting expense to record the payment
+  const { createExpense } = await import('./expenses');
+  
+  const expenseDescription = `Settlement payment: ${fromMember.name} → ${toMember.name}`;
+  const expenseNotes = notes || `Payment recorded for settlement. Original amount: $${(settlement.amount / 100).toFixed(2)}`;
+
+  // Create a shared expense that offsets the settlement
+  // The payer (fromUser) pays the full amount
+  // Only the receiver (toUser) is in the split
+  const splitData: { [key: string]: number } = {
+    [settlement.toUserId]: settlement.amount,
+  };
+
+  const expenseId = await createExpense({
+    type: 'shared',
+    userId: settlement.fromUserId,
+    amount: settlement.amount,
+    description: expenseDescription,
+    category: 'OTHER',
+    date: new Date(),
+    notes: expenseNotes,
+    paymentMethod,
+    groupId: settlement.groupId,
+    paidBy: settlement.fromUserId,
+    splitMethod: 'custom',
+    splitData,
+    participants: [settlement.fromUserId, settlement.toUserId],
+  });
+
+  // Update settlement status
+  await updateDoc(settlementRef, {
+    status: 'completed',
+    completedAt: new Date(),
+    completedBy: userId,
+    notes: notes || settlement.notes,
+  });
+
+  // Send notifications to both parties
+  Promise.all([
+    import('@/lib/notifications/notification-service').then(({ createNotification }) => {
+      return Promise.all([
+        // Notify the payer
+        createNotification({
+          userId: settlement.fromUserId,
+          type: 'settlement_paid',
+          title: 'Settlement Marked as Paid',
+          message: `Your payment of $${(settlement.amount / 100).toFixed(2)} to ${toMember.name} has been recorded.`,
+          link: `/dashboard/expenses/${expenseId}`,
+          relatedId: settlementId,
+        }),
+        // Notify the receiver
+        createNotification({
+          userId: settlement.toUserId,
+          type: 'settlement_paid',
+          title: 'Payment Received',
+          message: `${fromMember.name} marked the settlement of $${(settlement.amount / 100).toFixed(2)} as paid.`,
+          link: `/dashboard/expenses/${expenseId}`,
+          relatedId: settlementId,
+        }),
+      ]);
+    })
+  ]).catch(error => {
+    console.error('Error sending settlement notifications:', error);
+    // Don't throw - settlement was completed successfully
+  });
+
+  return expenseId;
+}
+
+/**
+ * Mark settlement as completed (legacy method - use markSettlementAsPaid instead)
  * Only involved parties (from or to user) can complete
  */
 export async function completeSettlement(

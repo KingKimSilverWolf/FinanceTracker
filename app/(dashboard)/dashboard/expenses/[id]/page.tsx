@@ -14,6 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { getCategory } from '@/lib/constants/expenses';
 import { formatCurrency, formatDate } from '@/lib/utils/index';
 import { toast } from 'sonner';
+import { EditExpenseDialog } from '@/components/expenses/edit-expense-dialog';
 
 export default function ExpenseDetailPage() {
   const params = useParams();
@@ -22,6 +23,7 @@ export default function ExpenseDetailPage() {
   const [expense, setExpense] = useState<Expense | null>(null);
   const [group, setGroup] = useState<Group | null>(null);
   const [loading, setLoading] = useState(true);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
   const expenseId = params.id as string;
 
   const loadExpense = useCallback(async () => {
@@ -141,7 +143,7 @@ export default function ExpenseDetailPage() {
               <div className="flex gap-2">
                 {isOwner && (
                   <>
-                    <Button variant="outline" size="sm" disabled>
+                    <Button variant="outline" size="sm" onClick={() => setEditDialogOpen(true)}>
                       <Edit className="mr-2 h-4 w-4" />
                       Edit
                     </Button>
@@ -306,6 +308,16 @@ export default function ExpenseDetailPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Edit Expense Dialog */}
+        {expense && (
+          <EditExpenseDialog
+            expense={expense}
+            open={editDialogOpen}
+            onOpenChange={setEditDialogOpen}
+            onSuccess={loadExpense}
+          />
+        )}
       </div>
     </ProtectedRoute>
   );

@@ -215,6 +215,7 @@ export function GroupBalanceDashboard({ groupId, onViewHistory }: GroupBalanceDa
                       transaction={transaction}
                       currentUserId={user?.uid || ''}
                       onMarkAsSettled={handleMarkAsSettled}
+                      onPaymentRecorded={loadTransactions}
                     />
                   ))}
                 </div>

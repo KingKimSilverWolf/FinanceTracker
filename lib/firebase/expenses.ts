@@ -134,6 +134,33 @@ export async function createExpense(expenseData: {
 }
 
 /**
+ * Update an existing expense
+ */
+export async function updateExpense(
+  expenseId: string,
+  updates: Partial<{
+    amount: number;
+    description: string;
+    category: string;
+    date: Date;
+    notes?: string;
+    receiptURL?: string;
+    paymentMethod?: string;
+    groupId?: string;
+    paidBy?: string;
+    splitMethod?: SplitMethod;
+    splitData?: SplitData;
+    participants?: string[];
+  }>
+): Promise<void> {
+  const expenseRef = doc(db, 'expenses', expenseId);
+  await updateDoc(expenseRef, {
+    ...updates,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+/**
  * Get a single expense by ID
  */
 export async function getExpense(expenseId: string): Promise<Expense | null> {
@@ -228,32 +255,6 @@ export async function getUserExpenses(userId: string, limitCount: number = 100):
       createdAt: toDate(data.createdAt),
       updatedAt: toDate(data.updatedAt),
     };
-  });
-}
-
-/**
- * Update an expense
- */
-export async function updateExpense(
-  expenseId: string,
-  updates: Partial<{
-    amount: number;
-    description: string;
-    category: string;
-    date: Date;
-    notes: string;
-    receiptURL: string;
-    paymentMethod: string;
-    splitMethod: SplitMethod;
-    splitData: SplitData;
-    participants: string[];
-  }>
-): Promise<void> {
-  const expenseRef = doc(db, 'expenses', expenseId);
-
-  await updateDoc(expenseRef, {
-    ...updates,
-    updatedAt: serverTimestamp(),
   });
 }
 
