@@ -6,7 +6,8 @@ import { ProtectedRoute } from '@/components/auth/protected-route';
 import { useAuth } from '@/lib/contexts/auth-context';
 import { subscribeToUserGroups, type Group } from '@/lib/firebase/groups';
 import { subscribeToUserExpenses } from '@/lib/firebase/expenses';
-import { getRecurringExpenseStats, type RecurringExpenseStats } from '@/lib/firebase/recurring';
+import { getRecurringExpenseStats } from '@/lib/firebase/recurring';
+import type { RecurringExpenseStats } from '@/lib/recurring/types';
 import { calculatePersonBalances, calculateOptimalSettlements } from '@/lib/settlement/calculations';
 import { AddExpenseDialog } from '@/components/expenses/add-expense-dialog';
 import { DashboardLayout } from '@/components/layouts/dashboard-layout';
@@ -70,8 +71,8 @@ export default function DashboardPage() {
     // Subscribe to expenses
     const unsubscribeExpenses = subscribeToUserExpenses(
       user.uid,
-      (updatedExpenses: any[]) => {
-        const mappedExpenses = updatedExpenses.map((exp: any) => ({
+      (updatedExpenses: DashboardExpense[]) => {
+        const mappedExpenses = updatedExpenses.map((exp) => ({
           id: exp.id,
           description: exp.description,
           amount: exp.amount,
@@ -202,7 +203,7 @@ export default function DashboardPage() {
     const avgDaily = daysInMonth > 0 ? currentMonthTotal / daysInMonth : 0;
 
     // Upcoming recurring expenses
-    const upcomingRecurring = recurringStats?.dueThisWeek || 0;
+    const upcomingRecurring = recurringStats?.upcomingThisWeek || 0;
 
     return {
       todayTotal,
@@ -374,7 +375,7 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {recurringStats?.active || 0}
+                  {recurringStats?.totalActive || 0}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                   {stats.upcomingRecurring > 0 && (
@@ -384,7 +385,7 @@ export default function DashboardPage() {
                     </>
                   )}
                   {stats.upcomingRecurring === 0 && (
-                    <span>{recurringStats?.estimatedMonthly ? formatCurrency(recurringStats.estimatedMonthly) : '$0'}/mo</span>
+                    <span>{recurringStats?.totalAmountPerMonth ? formatCurrency(recurringStats.totalAmountPerMonth) : '$0'}/mo</span>
                   )}
                 </p>
               </CardContent>
@@ -491,7 +492,7 @@ export default function DashboardPage() {
                           </div>
                           <div className="flex items-center gap-2">
                             <Progress value={cat.percentage} className="h-2 flex-1" />
-                            <span className="text-xs text-muted-foreground min-w-[3rem] text-right">
+                            <span className="text-xs text-muted-foreground min-w-12 text-right">
                               {cat.percentage.toFixed(0)}%
                             </span>
                           </div>
