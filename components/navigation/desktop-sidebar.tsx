@@ -1,13 +1,14 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, BarChart3, Receipt, Users, User, DollarSign, LogOut, ChevronLeft, Menu, Clock } from 'lucide-react';
+import { Home, BarChart3, Receipt, Users, User, DollarSign, LogOut, ChevronLeft, Menu, Clock, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { auth } from '@/lib/firebase/config';
 import { signOut } from 'firebase/auth';
 import { toast } from 'sonner';
 import { useSidebar } from '@/lib/contexts/sidebar-context';
+import { NotificationBell } from '@/components/notifications/notification-bell';
 
 const navItems = [
   {
@@ -45,6 +46,11 @@ const navItems = [
     href: '/dashboard/profile',
     icon: User,
   },
+  {
+    name: 'Settings',
+    href: '/dashboard/settings',
+    icon: Settings,
+  },
 ];
 
 export function DesktopSidebar() {
@@ -80,18 +86,21 @@ export function DesktopSidebar() {
             <span className="font-bold text-lg">DuoFi</span>
           </div>
         )}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className={cn('shrink-0', isCollapsed && 'mx-auto')}
-        >
-          {isCollapsed ? (
-            <Menu className="w-5 h-5" />
-          ) : (
-            <ChevronLeft className="w-5 h-5" />
-          )}
-        </Button>
+        <div className="flex items-center gap-1">
+          {!isCollapsed && <NotificationBell />}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className="shrink-0"
+          >
+            {isCollapsed ? (
+              <Menu className="w-5 h-5" />
+            ) : (
+              <ChevronLeft className="w-5 h-5" />
+            )}
+          </Button>
+        </div>
       </div>
 
       {/* Navigation Items */}

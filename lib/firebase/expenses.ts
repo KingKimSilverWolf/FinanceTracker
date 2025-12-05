@@ -115,6 +115,21 @@ export async function createExpense(expenseData: {
     updatedAt: serverTimestamp(),
   });
 
+  // Trigger budget and notification checks asynchronously
+  // Don't await to avoid slowing down expense creation
+  Promise.all([
+    import('@/lib/notifications/budget-alerts').then(({ checkBudgetsAndAlert, checkLargeExpense, checkSpendingSpike }) => {
+      return Promise.all([
+        checkBudgetsAndAlert(expenseData.userId),
+        checkLargeExpense(expenseData.userId, expenseData.amount, expenseData.category),
+        checkSpendingSpike(expenseData.userId),
+      ]);
+    })
+  ]).catch(error => {
+    console.error('Error checking budgets/notifications:', error);
+    // Don't throw - expense was created successfully
+  });
+
   return expenseRef.id;
 }
 
