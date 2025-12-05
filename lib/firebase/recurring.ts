@@ -108,39 +108,62 @@ export async function getUserRecurringExpenses(
 ): Promise<RecurringExpense[]> {
   try {
     const recurringRef = collection(db, 'recurringExpenses');
-    const q = query(
+    
+    // Query 1: Recurring expenses created by the user
+    const q1 = query(
       recurringRef,
       where('createdBy', '==', userId),
       orderBy('nextRunDate', 'asc')
     );
     
-    const snapshot = await getDocs(q);
-    const recurring: RecurringExpense[] = [];
+    // Query 2: Recurring expenses where user is in splitBetween
+    const q2 = query(
+      recurringRef,
+      where('splitBetween', 'array-contains', userId),
+      orderBy('nextRunDate', 'asc')
+    );
     
-    snapshot.forEach((doc) => {
-      const data = doc.data();
-      recurring.push({
-        id: doc.id,
-        description: data.description,
-        amount: data.amount,
-        category: data.category,
-        groupId: data.groupId,
-        groupName: data.groupName || '',
-        paidBy: data.paidBy,
-        splitBetween: data.splitBetween,
-        frequency: data.frequency,
-        startDate: data.startDate.toDate(),
-        endDate: data.endDate?.toDate(),
-        nextRunDate: data.nextRunDate.toDate(),
-        status: data.status,
-        createdBy: data.createdBy,
-        createdAt: data.createdAt.toDate(),
-        updatedAt: data.updatedAt.toDate(),
-        lastCreatedAt: data.lastCreatedAt?.toDate(),
-        totalCreated: data.totalCreated || 0,
-        notes: data.notes,
+    const [snapshot1, snapshot2] = await Promise.all([
+      getDocs(q1),
+      getDocs(q2)
+    ]);
+    
+    const recurring: RecurringExpense[] = [];
+    const seenIds = new Set<string>();
+    
+    // Process both query results and deduplicate
+    [snapshot1, snapshot2].forEach((snapshot) => {
+      snapshot.forEach((doc) => {
+        if (seenIds.has(doc.id)) return; // Skip duplicates
+        seenIds.add(doc.id);
+        
+        const data = doc.data();
+        recurring.push({
+          id: doc.id,
+          description: data.description,
+          amount: data.amount,
+          category: data.category,
+          groupId: data.groupId,
+          groupName: data.groupName || '',
+          paidBy: data.paidBy,
+          splitBetween: data.splitBetween,
+          frequency: data.frequency,
+          startDate: data.startDate.toDate(),
+          endDate: data.endDate?.toDate(),
+          nextRunDate: data.nextRunDate.toDate(),
+          status: data.status,
+          createdBy: data.createdBy,
+          createdAt: data.createdAt.toDate(),
+          updatedAt: data.updatedAt.toDate(),
+          lastCreatedAt: data.lastCreatedAt?.toDate(),
+          totalCreated: data.totalCreated || 0,
+          notes: data.notes,
+        });
       });
     });
+    
+    // Sort by nextRunDate
+    recurring.sort((a, b) => a.nextRunDate.getTime() - b.nextRunDate.getTime());
     
     return recurring;
   } catch (error) {

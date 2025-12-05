@@ -30,19 +30,23 @@ import { RecurringExpensesCard } from '@/components/analytics/recurring-expenses
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { format } from 'date-fns';
-import { Download, RefreshCcw, Loader2 } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DateRangePicker } from '@/components/ui/date-range-picker';
+import { format, subDays } from 'date-fns';
+import { Download, RefreshCcw, Loader2, Calendar } from 'lucide-react';
+import type { DateRange as DateRangeType } from 'react-day-picker';
 import { toast } from 'sonner';
 import { exportAndDownloadExpenses } from '@/lib/export/csv-export';
 import { DashboardLayout } from '@/components/layouts/dashboard-layout';
 
-type DateRange = '1M' | '3M' | '6M' | '1Y';
+type DateRangePreset = '1M' | '3M' | '6M' | '1Y' | 'custom';
 
 export default function AnalyticsPage() {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
-  const [dateRange, setDateRange] = useState<DateRange>('1M');
+  const [dateRangePreset, setDateRangePreset] = useState<DateRangePreset>('1M');
+  const [customDateRange, setCustomDateRange] = useState<DateRangeType | undefined>();
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
 
@@ -79,35 +83,42 @@ export default function AnalyticsPage() {
       try {
         setIsLoading(true);
 
-        // Calculate date range using timestamps to avoid invalid dates
+        // Calculate date range based on preset or custom selection
         const today = new Date();
-        const endDate = new Date(today);
         let startDate: Date;
+        let endDate: Date;
 
-        // Calculate days to subtract based on date range
-        let daysToSubtract: number;
-        switch (dateRange) {
-          case '1M':
-            daysToSubtract = 30;
-            break;
-          case '3M':
-            daysToSubtract = 90;
-            break;
-          case '6M':
-            daysToSubtract = 180;
-            break;
-          case '1Y':
-            daysToSubtract = 365;
-            break;
-          default:
-            daysToSubtract = 30;
+        if (dateRangePreset === 'custom' && customDateRange?.from) {
+          // Use custom date range
+          startDate = customDateRange.from;
+          endDate = customDateRange.to || customDateRange.from;
+        } else {
+          // Use preset date range
+          endDate = new Date(today);
+          let daysToSubtract: number;
+          
+          switch (dateRangePreset) {
+            case '1M':
+              daysToSubtract = 30;
+              break;
+            case '3M':
+              daysToSubtract = 90;
+              break;
+            case '6M':
+              daysToSubtract = 180;
+              break;
+            case '1Y':
+              daysToSubtract = 365;
+              break;
+            default:
+              daysToSubtract = 30;
+          }
+          
+          startDate = subDays(today, daysToSubtract);
         }
 
-        // Use timestamp arithmetic to ensure valid dates
-        startDate = new Date(today.getTime() - daysToSubtract * 24 * 60 * 60 * 1000);
-
         // Calculate previous period dates for comparison
-        const daysDiff = daysToSubtract;
+        const daysDiff = Math.ceil((endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000));
         const previousEnd = new Date(startDate.getTime() - 24 * 60 * 60 * 1000);
         const previousStart = new Date(previousEnd.getTime() - daysDiff * 24 * 60 * 60 * 1000);
 
@@ -196,7 +207,7 @@ export default function AnalyticsPage() {
     };
 
     loadAnalytics();
-  }, [user, dateRange]);
+  }, [user, dateRangePreset, customDateRange]);
 
   const handleRefresh = () => {
     // Trigger reload by updating a key
@@ -209,32 +220,39 @@ export default function AnalyticsPage() {
     try {
       setIsExporting(true);
       
-      // Calculate date range using timestamps to avoid invalid dates
+      // Calculate date range based on preset or custom selection
       const today = new Date();
-      const endDate = new Date(today);
       let startDate: Date;
+      let endDate: Date;
 
-      // Calculate days to subtract based on date range
-      let daysToSubtract: number;
-      switch (dateRange) {
-        case '1M':
-          daysToSubtract = 30;
-          break;
-        case '3M':
-          daysToSubtract = 90;
-          break;
-        case '6M':
-          daysToSubtract = 180;
-          break;
-        case '1Y':
-          daysToSubtract = 365;
-          break;
-        default:
-          daysToSubtract = 30;
+      if (dateRangePreset === 'custom' && customDateRange?.from) {
+        // Use custom date range
+        startDate = customDateRange.from;
+        endDate = customDateRange.to || customDateRange.from;
+      } else {
+        // Use preset date range
+        endDate = new Date(today);
+        let daysToSubtract: number;
+        
+        switch (dateRangePreset) {
+          case '1M':
+            daysToSubtract = 30;
+            break;
+          case '3M':
+            daysToSubtract = 90;
+            break;
+          case '6M':
+            daysToSubtract = 180;
+            break;
+          case '1Y':
+            daysToSubtract = 365;
+            break;
+          default:
+            daysToSubtract = 30;
+        }
+        
+        startDate = subDays(today, daysToSubtract);
       }
-
-      // Use timestamp arithmetic to ensure valid dates
-      startDate = new Date(today.getTime() - daysToSubtract * 24 * 60 * 60 * 1000);
 
       await exportAndDownloadExpenses({
         userId: user.uid,
@@ -261,7 +279,7 @@ export default function AnalyticsPage() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-primary/10">
+      <div className="min-h-screen bg-linear-to-br from-primary/5 via-background to-primary/10">
       <header className="border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -299,21 +317,44 @@ export default function AnalyticsPage() {
 
       <main className="container mx-auto px-4 py-8">
         {/* Date Range Selector */}
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">Select time period</p>
+        <div className="mb-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div>
+              <h3 className="text-sm font-medium mb-2">Time Period</h3>
+              <Tabs value={dateRangePreset} onValueChange={(value) => setDateRangePreset(value as DateRangePreset)} className="w-full md:w-auto">
+                <TabsList className="grid w-full grid-cols-5">
+                  <TabsTrigger value="1M">1M</TabsTrigger>
+                  <TabsTrigger value="3M">3M</TabsTrigger>
+                  <TabsTrigger value="6M">6M</TabsTrigger>
+                  <TabsTrigger value="1Y">1Y</TabsTrigger>
+                  <TabsTrigger value="custom">
+                    <Calendar className="h-4 w-4" />
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+            
+            {dateRangePreset === 'custom' && (
+              <div className="w-full md:w-auto">
+                <DateRangePicker
+                  date={customDateRange}
+                  onDateChange={setCustomDateRange}
+                  className="w-full"
+                  placeholder="Select custom date range"
+                />
+              </div>
+            )}
+            
+            {dateRangePreset !== 'custom' && (
+              <div className="text-sm text-muted-foreground">
+                Showing data from{' '}
+                {dateRangePreset === '1M' && 'last 30 days'}
+                {dateRangePreset === '3M' && 'last 90 days'}
+                {dateRangePreset === '6M' && 'last 180 days'}
+                {dateRangePreset === '1Y' && 'last 365 days'}
+              </div>
+            )}
           </div>
-          <Select value={dateRange} onValueChange={(value) => setDateRange(value as DateRange)}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Select range" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1M">Last Month</SelectItem>
-              <SelectItem value="3M">Last 3 Months</SelectItem>
-              <SelectItem value="6M">Last 6 Months</SelectItem>
-              <SelectItem value="1Y">Last Year</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
 
         {/* Summary Cards */}

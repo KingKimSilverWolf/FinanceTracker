@@ -97,6 +97,17 @@ body {
   transition: box-shadow 0.2s ease-in-out;
 }
 
+/* React Day Picker Styles */
+.rdp {
+  --rdp-cell-size: 40px;
+  --rdp-accent-color: theme(colors.primary);
+  --rdp-background-color: theme(colors.accent);
+  --rdp-accent-color-dark: theme(colors.primary);
+  --rdp-background-color-dark: theme(colors.accent);
+  --rdp-outline: 2px solid theme(colors.ring);
+  --rdp-outline-selected: 2px solid theme(colors.primary);
+}
+
 /* Custom scrollbar for webkit browsers */
 .scrollbar-thin::-webkit-scrollbar {
   width: 8px;

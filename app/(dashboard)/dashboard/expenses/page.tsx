@@ -2,7 +2,10 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Receipt, Search, TrendingUp, Calendar } from 'lucide-react';
+import { Receipt, Search, TrendingUp, Calendar, X } from 'lucide-react';
+import type { DateRange } from 'react-day-picker';
+import { DateRangePicker } from '@/components/ui/date-range-picker';
+import { isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { ProtectedRoute } from '@/components/auth/protected-route';
 import { DashboardLayout } from '@/components/layouts/dashboard-layout';
 import { useAuth } from '@/lib/contexts/auth-context';
@@ -22,6 +25,7 @@ export default function ExpensesPage() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'shared' | 'personal'>('all');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
   useEffect(() => {
     if (!user) return;
@@ -42,7 +46,17 @@ export default function ExpensesPage() {
   const filteredExpenses = expenses.filter((expense) => {
     const matchesSearch = expense.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = filterType === 'all' || expense.type === filterType;
-    return matchesSearch && matchesType;
+    
+    // Date range filter
+    let matchesDate = true;
+    if (dateRange?.from) {
+      const expenseDate = new Date(expense.date);
+      const from = startOfDay(dateRange.from);
+      const to = dateRange.to ? endOfDay(dateRange.to) : endOfDay(dateRange.from);
+      matchesDate = isWithinInterval(expenseDate, { start: from, end: to });
+    }
+    
+    return matchesSearch && matchesType && matchesDate;
   });
 
   // Group expenses by date
@@ -121,24 +135,40 @@ export default function ExpensesPage() {
           </div>
 
           {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search expenses..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
-            </div>
+          <div className="space-y-4 mb-6">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Search expenses..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
 
-            <Tabs value={filterType} onValueChange={(v) => setFilterType(v as 'all' | 'shared' | 'personal')} className="w-full sm:w-auto">
-              <TabsList>
-                <TabsTrigger value="all">All</TabsTrigger>
-                <TabsTrigger value="shared">👥 Shared</TabsTrigger>
-                <TabsTrigger value="personal">💰 Personal</TabsTrigger>
-              </TabsList>
-            </Tabs>
+              <Tabs value={filterType} onValueChange={(v) => setFilterType(v as 'all' | 'shared' | 'personal')} className="w-full sm:w-auto">
+                <TabsList>
+                  <TabsTrigger value="all">All</TabsTrigger>
+                  <TabsTrigger value="shared">👥 Shared</TabsTrigger>
+                  <TabsTrigger value="personal">💰 Personal</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <DateRangePicker
+                date={dateRange}
+                onDateChange={setDateRange}
+                placeholder="Filter by date range"
+                className="max-w-sm"
+              />
+              {dateRange?.from && (
+                <p className="text-sm text-muted-foreground">
+                  Showing {filteredExpenses.length} of {expenses.length} expenses
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Expenses List */}
