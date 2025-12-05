@@ -4,16 +4,20 @@
  * Centralized settings for budgets, notifications, and preferences
  */
 
+'use client'
+
 import { BudgetSettings } from "@/components/settings/budget-settings"
 import { NotificationSettings } from "@/components/settings/notification-settings"
 import { ThemeToggle } from "@/components/settings/theme-toggle"
+import { DashboardLayout } from "@/components/layouts/dashboard-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { DollarSign, Bell, Settings as SettingsIcon } from "lucide-react"
 
 export default function SettingsPage() {
   return (
-    <div className="container max-w-4xl py-6 space-y-6">
+    <DashboardLayout>
+      <div className="container max-w-4xl py-6 space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Settings</h1>
         <p className="text-muted-foreground mt-1">
@@ -67,6 +71,7 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
+      </div>
+    </DashboardLayout>
   )
 }
